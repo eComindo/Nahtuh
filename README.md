@@ -1,2 +1,1 @@
-# Nahtuh
-Nahtuh repository for activity client
+This is a Readme file.
