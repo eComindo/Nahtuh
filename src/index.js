@@ -14,6 +14,7 @@
 import nahtuhsettings from './nahtuh-settings';
 import ObservableSlim from './observable-slim';
 import identityManager from './identitymanager';
+import './components/index';
 
 const nahtuhClient = new function () {
 
