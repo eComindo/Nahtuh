@@ -28,6 +28,6 @@ module.exports = {
             patterns: [
               { from: "src/components/assets", to: "assets" }
             ],
-        }),
+        })
     ]
 };
