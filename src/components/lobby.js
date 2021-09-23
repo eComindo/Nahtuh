@@ -117,12 +117,10 @@ class Lobby extends LitElement {
 
   startGame = async () => {
     let validateFlag = { status: true, message: '' }
-    console.log('CHECK VALIDATE BEFORE START', typeof this.validateBeforeStart === 'function')
 
     if (this.isHost
       && typeof this.validateBeforeStart === 'function') {
       validateFlag = await this.validateBeforeStart();
-      console.log('CHECK RESULT VALIDATE', this.validateBeforeStart(), validateFlag, validateFlag.status);
     }
 
     if (validateFlag.status) {
@@ -134,7 +132,6 @@ class Lobby extends LitElement {
       var interval = setInterval((lobby = this) => {
         if (timer < 1) {
           clearInterval(interval);
-          console.log("timer stopped");
           this.removeListener();
           if (typeof lobby.onStart === "function") lobby.onStart();
           return;
@@ -224,6 +221,10 @@ class Lobby extends LitElement {
     hostAvatar.style.background = `linear-gradient(to bottom right, ${getRandomColor(host.participantId)})`;
   };
 
+  inviteHandler = () => {
+    nahtuhClient.shareEvent();
+  }
+
   renderList = () => {
     var participantList = this.renderRoot.querySelector("#participant-list");
     var innerHtml = "";
@@ -256,7 +257,8 @@ class Lobby extends LitElement {
         <div class="lobby-container">
           <div class="activity-info-container">
             <div class="activity-info-header">
-              <div id="activity-info-wrapper">
+              
+              <div id="activity-info-wrapper" class="header-${this.isHost ? '' : "participant-"}container">
                 <img id="activity-thumbnail" src="${this.activityThumbnail}" alt="image" />
                 <div id="activity-header">
                   <div id="activity-name">${this.activityName}</div>
@@ -268,12 +270,25 @@ class Lobby extends LitElement {
                   </div>
                 </div>
               </div>
-              <div
-                id="action-btn"
-                @click="${this.isHost ? this.startGame : this.leaveEventHandler}"
-                class="btn ${this.isHost ? "btn-primary" : "btn-secondary"}"
-              >
-                ${this.isHost ? "Start" : "Leave Event"}
+
+              <div class="action-button-container">
+                ${this.isHost ?
+                  html`<div
+                    id="action-btn-secondary"
+                    @click="${this.inviteHandler}"
+                    class="btn btn-invite btn-width gap"
+                  >
+                    Invite
+                  </div>` : null
+                }
+
+                <div
+                  id="action-btn"
+                  @click="${this.isHost ? this.startGame : this.leaveEventHandler}"
+                  class="btn ${this.isHost ? "btn-primary btn-width" : "btn-secondary"}"
+                >
+                  ${this.isHost ? "Start" : "Leave Event"}
+                </div>
               </div>
             </div>
 

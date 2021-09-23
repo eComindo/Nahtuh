@@ -40,7 +40,7 @@ Leaderboard 1 dan 2 memiliki 2 mode, dark mode dan light mode, dapat dilihat pad
 
     // ketika game atau quiz dimulai update leaderBoardData sebagai berikut (pada function start)
     ...
-    var participants = await nahtuhClient.getParticipantList();
+    var participants = await yai.getParticipantList();
     participants.forEach((x) => {
         let leaderBoardItem = {
             id: x.participantId,
@@ -51,7 +51,7 @@ Leaderboard 1 dan 2 memiliki 2 mode, dark mode dan light mode, dapat dilihat pad
         leaderBoardData.push(leaderBoardItem);
         localLeaderBoardData.push(leaderBoardItem); // digunakan sebagai pembanding ketika akan mengupdate eventVars leaderBoardData di akhir
     };
-    nahtuhClient.eventVars.leaderBoardData;
+    yai.eventVars.leaderBoardData;
     ...
     
     =================================================
@@ -71,7 +71,7 @@ Leaderboard 1 dan 2 memiliki 2 mode, dark mode dan light mode, dapat dilihat pad
     const content = { quizData }
     const hostId = participants.find((x) => x.isHost).participantId;
     // kirim ke host data quiz atau game yang sudah diupdate peserta
-    nahtuhClient.sendToUser(hostId, content);
+    yai.sendToUser(hostId, content);
     // render component leaderboard oleh peserta
     renderLeaderBoard();
     ...
@@ -106,8 +106,8 @@ Leaderboard 1 dan 2 memiliki 2 mode, dark mode dan light mode, dapat dilihat pad
     function updateLeaderBoard() {
         intervalCalled = true;
         timerFunc = setInterval(() => {
-            if (JSON.stringify(localLeaderBoardData) !== JSON.stringify(nahtuhClient.eventVars.leaderBoardData)) {
-                nahtuhClient.eventVars.leaderBoardData = localLeaderBoardData;
+            if (JSON.stringify(localLeaderBoardData) !== JSON.stringify(yai.eventVars.leaderBoardData)) {
+                yai.eventVars.leaderBoardData = localLeaderBoardData;
                 Render.leaderBoard();
             }
         }, 2500); // dapat disesuaikan lama interval disarankan diatas 1 detik agar tidak terlalu sering eventVars diupdate

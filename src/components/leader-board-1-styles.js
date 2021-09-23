@@ -1124,7 +1124,7 @@ const leaderboard1 = css`
   }
 }
 
-@media only screen and (min-height: 812) {
+@media only screen and (min-height: 807px) {
   .dark-root-leaderboard-container {
     height: 100vw;
   }

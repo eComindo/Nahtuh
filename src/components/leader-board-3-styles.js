@@ -681,21 +681,13 @@ const leaderboard3 = css`
     }
   }
 
-  @media only screen and (min-height: 807) {
-    .dark-root-leaderboard-container {
-      height: 100vw;
-    }
-
+  @media only screen and (min-height: 812px) {
     .root-leaderboard-container {
       height: 100vw;
     }
   }
 
   @media only screen and (min-height: 949px) and (max-width: 1010px) {
-    .dark-root-leaderboard-container {
-      height: 100vw;
-    }
-
     .root-leaderboard-container {
       height: 100vw;
     }

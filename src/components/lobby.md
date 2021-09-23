@@ -78,4 +78,4 @@ function renderLobby(data) {
 | validateOnInit                  | Function |          | Callback yang dipanggil oleh host ketika host memulai event. Harus return value sesuai dicontoh. Dapat digunakan untuk validasi user ataupun costum. (Request untuk validasi min player) |
 | onAlert                         | Function |          | Callback yang dipanggil untuk informasi tambahan dari fungsi validate ketika validasi tidak lolos. |
 | onStart                         | Function |          | Callback yang dipanggil saat host memulai event.             |
-| leaveEvent                      | Function |          | Callback saat current participant `leaveEvent`. Isinya hanya memanggil `nahtuhClient.leaveEvent()`, untuk handling lainnya diserahkan ke developer. |
+| leaveEvent                      | Function |          | Callback saat current participant `leaveEvent`. Isinya hanya memanggil `yai.leaveEvent()`, untuk handling lainnya diserahkan ke developer. |

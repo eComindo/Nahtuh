@@ -56,7 +56,7 @@ class CreateEvent extends LitElement {
 
     if (this.eventId) {
       if (this.validate(this.username, this.eventId, this.isHost)) {
-        nahtuhClient
+        yai
           .join(this.eventId, this.username, "")
           .then((response) => {
             this.onStart(response);
@@ -102,7 +102,7 @@ class CreateEvent extends LitElement {
           this.renderRoot.querySelector("#enter-btn").innerText = "Create";
         }
       } else {
-        await nahtuhClient
+        await yai
           .join(this.eventId, this.username, "")
           .then((response) => {
             this.onStart(response);

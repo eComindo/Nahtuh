@@ -4,7 +4,7 @@ import {
   css,
 } from "lit-element";
 import { leaderBoard1Styles } from "./leader-board-1-styles.js";
-import { nahtuhClient } from '../index.js';
+import { nahtuhClient, identityManager } from '../index.js';
 
 const colorGradient = [
   css`#FBD06A, #AC30FF`,

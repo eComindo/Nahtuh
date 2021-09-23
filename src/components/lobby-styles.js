@@ -96,7 +96,6 @@ const activityInfo = css`
     margin-right: 0.5rem;
   }
   #action-btn {
-    width: 100%;
     padding: auto;
     border-radius: 999px;
     text-align: center;
@@ -122,7 +121,6 @@ const activityInfo = css`
       width: auto;
     }
     #action-btn {
-      width: 150px;
       margin: auto 0;
       margin-left: auto;
     }
@@ -155,11 +153,30 @@ const components = css`
     font-size: 12px;
     font-weight: 400;
   }
+  .btn-participant {
+    width: 100%;
+  }
+  .btn-host {
+    width: 45%;
+  }
   .bar-primary {
     background: var(--colorPrimary);
   }
   .bar-danger {
     background: var(--colorDanger);
+  }
+  .gap {
+    margin-right: 0.25rem;
+  }
+  .action-button-container {
+    display: flex;
+  }  
+  .btn-width {
+    width: 300px;
+  }
+  .btn-primary {
+    background: linear-gradient(90deg, var(--colorPrimary) 3.21%, var(--colorSecondary) 105.94%);
+    color: #ffffff;
   }
   .btn {
     -moz-border-radius: 9999px;
@@ -181,6 +198,16 @@ const components = css`
   .user-block {
     --hack: 10000%;
     --op: 0.1;
+    background: linear-gradient(
+      to bottom,
+      var(--colorPrimary) calc((var(--op) - 1) * var(--hack)),
+      transparent calc(var(--op) * var(--hack))
+    );
+    color: #071755;
+  }
+  .btn-invite {
+    --hack: 10000%;
+    --op: 0.3;
     background: linear-gradient(
       to bottom,
       var(--colorPrimary) calc((var(--op) - 1) * var(--hack)),
@@ -245,6 +272,18 @@ const components = css`
     }
     .tabs {
       display: none;
+    }
+    .btn-participant {
+      width: 150px;
+    }
+    .btn-host {
+      width: 150px;
+    }
+    .header-container {
+      width: 75%;
+    }
+    .header-participant-container {
+      width: 100%;
     }
   }
   @media only screen and (min-width: 1024px) {
