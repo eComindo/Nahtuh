@@ -3,8 +3,8 @@ Nahtuh client is a javascript library to use nahtuh API to develop real time col
 ### Contents
 - [Getting Started](#getting-started)
 - [API Documentation](#api-documentation)
-    1. [Login](#login)
-    2. [Create Event](#create-event)
+    1. [Login](#1-login)
+    2. [Create Event](#2-create-event)
 ### Getting Started
 #### CDN
 ``````html
