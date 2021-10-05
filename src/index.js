@@ -35,30 +35,20 @@ const nahtuhClient = new function () {
 
     // hold activity info that is sets by parent container
     var _activityId = null;
-    var _activitySetId = null;
+    var _presetActivityId = null;
+    var _avatar = null;
     
     // hold current user access and refresh token
     var _userToken = null;
 
     // hold detail of current event
-    var eventInfo = null;
+    var _eventInfo = null;
 
     // hold current participant access and refresh token
     var participantToken = null;
 
     // hold detail of current participant
     var participantInfo = null;
-
-    // hold portal token
-    var portalToken = null;
-
-    // hold activity id
-    var activityId = null;
-
-    // hold activityset id
-    var activitySetId = null;
-
-    var avatar = null;
 
     /* Public properties
     *
@@ -102,7 +92,7 @@ const nahtuhClient = new function () {
         switch (event.data.key) {
             case 'setactivityinfo':
                 _activityId = event.data.value.activityId;
-                _activitySetId = event.data.value.activitySetId;
+                _presetActivityId = event.data.value.presetActivityId;
                 _userToken = event.data.value.userToken;
                 break;
         }
@@ -110,13 +100,13 @@ const nahtuhClient = new function () {
 
     this.init = () => {
         window.addEventListener("message", handlePostMessage, true);
-        portalToken = new URLSearchParams(window.location.search).get('accessToken');
-        activityId = new URLSearchParams(window.location.search).get('rawActivityId');
-        activitySetId = new URLSearchParams(window.location.search).get('activitySetId');
-        avatar = new URLSearchParams(window.location.search).get('avatar');
+        _userToken = new URLSearchParams(window.location.search).get('accessToken');
+        _activityId = new URLSearchParams(window.location.search).get('rawActivityId') || 'X002';
+        _presetActivityId = new URLSearchParams(window.location.search).get('activitySetId') || randomString(10);
+        _avatar = new URLSearchParams(window.location.search).get('avatar');
         var isActivitySetOwnerTemp = new URLSearchParams(window.location.search).get('isActivitySetOwner');
 
-        if(activitySetId){
+        if(_presetActivityId){
             this.isLoadingActivitySet = true;
         }
 
@@ -230,12 +220,15 @@ const nahtuhClient = new function () {
     **********************************/
 
     // create an event
-    this.createEvent = async (activityId, activitySetId, participantName, avatarUrl, userToken, autoStart = true) => {
-
-        // use parent defined parameter when its defined
-        if (_activityId !== null) activityId = _activityId;
-        if (_activitySetId !== null) activitySetId = _activitySetId;
-        if (_userToken !== null) userToken = _userToken;
+    this.createEvent = async (participantName, autoStart = true) => {
+        if(!_userToken){
+            try{
+                let res = await identityManager.login(participantName, 'xxxx');
+                _userToken = res.accessToken;
+            }catch(ex){
+                console.log(ex);
+            }
+        }
 
         var name = sanitizeString(participantName);
         if(name.length > 20) throw 'Invalid name';
@@ -243,20 +236,20 @@ const nahtuhClient = new function () {
         try{
             var data = await $post('createevent',
             {
-                'activityId': activityId,
-                'activitySetId': activitySetId,
+                'activityId': _activityId,
+                'activitySetId': _presetActivityId,
                 'participantName': name,
-                'avatarUrl': avatar,
-                'userToken': userToken
+                'avatarUrl': _avatar,
+                'userToken': _userToken
             }, false);
 
-            eventInfo = data.eventInfo;
-            this.eventId = eventInfo.eventId;
+            _eventInfo = data.eventInfo;
+            this.eventId = _eventInfo.eventId;
             participantInfo = data.participant;
             participantToken = data.participantToken;
             
             console.log('sending data . . .')
-            parent.postMessage({key: 'eventInfo', value: JSON.stringify(eventInfo)}, '*');
+            parent.postMessage({key: 'eventInfo', value: JSON.stringify(_eventInfo)}, '*');
             parent.postMessage({key: 'username', value: participantName}, '*');
 
             if (autoStart) {
@@ -269,16 +262,16 @@ const nahtuhClient = new function () {
     }
 
     // join to an event
-    this.join = (eventId, participantName, avatarUrl, autoStart = true) => {
+    this.join = (eventId, participantName, autoStart = true) => {
         var name = sanitizeString(participantName)
         if(name.length > 20) throw 'Invalid name';
 
         return new Promise(function (resolve, reject) {
             $post('join',
-                { 'eventId': eventId, 'participantName': name, 'avatarUrl': avatar }, false)
+                { 'eventId': eventId, 'participantName': name, 'avatarUrl': _avatar }, false)
                 .then(data => {
                     console.log(data);
-                    eventInfo = data.eventInfo;
+                    _eventInfo = data.eventInfo;
                     scope.eventId = eventId;
                     participantInfo = data.participant;
                     participantToken = data.participantToken;
@@ -300,7 +293,7 @@ const nahtuhClient = new function () {
         $post('addeventconnection', {
             ConnectionId: connection.connectionId,
             Name: participantInfo.participantName,
-            EventId: eventInfo.eventId
+            EventId: _eventInfo.eventId
         });
     }
 
@@ -529,18 +522,18 @@ const nahtuhClient = new function () {
             throw 'thumbnail image not valid';
         }
 
-        if(portalToken){
+        if(_userToken){
             let params = {
                 method: 'POST',
                 withCredentials: true,
                 body: formData,
-                headers: { 'Authorization': 'Bearer ' + portalToken }
+                headers: { 'Authorization': 'Bearer ' + _userToken }
             }
 
             try{
                 let res = await fetch(`${apiActivityServiceUrl}/api/activity/${activityId}/presetactivity`, params);
                 let data = await res.json();
-                activitySetId = data.id;
+                _presetActivityId = data.id;
                 await this.updateActivitySetConfig(config);
             }catch(err){
                 throw err;
@@ -560,16 +553,16 @@ const nahtuhClient = new function () {
             throw 'thumbnail image not valid';
         }
 
-        if(portalToken){
+        if(_userToken){
             let params = {
                 method: 'PUT',
                 withCredentials: true,
                 body: formData,
-                headers: { 'Authorization': 'Bearer ' + portalToken }
+                headers: { 'Authorization': 'Bearer ' + _userToken }
             }
 
-            let tempId = activitySetId.split('/')
-            let activityset = activitySetId
+            let tempId = _presetActivityId.split('/')
+            let activityset = _presetActivityId
             if(tempId.length > 1){
                 activityset = tempId[0]
             }
@@ -577,7 +570,7 @@ const nahtuhClient = new function () {
             try{
                 let res = await fetch(`${apiActivityServiceUrl}/api/activity/${activityId}/presetactivity/${activityset}`, params);
                 let data = await res.json();
-                activitySetId = data.id;
+                _presetActivityId = data.id;
                 await this.updateActivitySetConfig(config);
             }catch(err){
                 throw err;
@@ -597,18 +590,18 @@ const nahtuhClient = new function () {
             throw 'thumbnail image not valid';
         }
 
-        if(portalToken){
+        if(_userToken){
             let params = {
                 method: 'POST',
                 withCredentials: true,
                 body: formData,
-                headers: { 'Authorization': 'Bearer ' + portalToken }
+                headers: { 'Authorization': 'Bearer ' + _userToken }
             }
 
             try{
                 let res = await fetch(`${apiActivityServiceUrl}/api/activity/${activityId}/presetactivity`, params);
                 let data = await res.json();
-                activitySetId = data.id;
+                _presetActivityId = data.id;
                 await this.updateActivitySetConfig(config);
             }catch(err){
                 throw err;
@@ -621,15 +614,15 @@ const nahtuhClient = new function () {
         let formData = new FormData();
         formData.append('configAsString', JSON.stringify(config));
 
-        if(portalToken){
+        if(_userToken){
             let params = {
                 method: 'POST',
                 withCredentials: true,
                 body: formData,
-                headers: { 'Authorization': 'Bearer ' + portalToken }
+                headers: { 'Authorization': 'Bearer ' + _userToken }
             }
-            let tempId = activitySetId.split('/')
-            let activityset = activitySetId
+            let tempId = _presetActivityId.split('/')
+            let activityset = _presetActivityId
             if(tempId.length > 1){
                 activityset = tempId[0]
             }
@@ -652,8 +645,8 @@ const nahtuhClient = new function () {
     }
 
     this.getPresetActivityData = async () => {
-        let tempId = activitySetId.split('/');
-        let activityset = activitySetId;
+        let tempId = _presetActivityId.split('/');
+        let activityset = _presetActivityId;
         if(tempId.length > 1){
             activityset = tempId[0];
         }
@@ -741,6 +734,17 @@ const nahtuhClient = new function () {
                 .catch(error => reject(error))
         });
     };
+
+    function randomString(length) {
+        var result           = '';
+        var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        var charactersLength = characters.length;
+        for ( var i = 0; i < length; i++ ) {
+          result += characters.charAt(Math.floor(Math.random() * 
+            charactersLength));
+       }
+       return result;
+    }
 
     function sanitizeString(str){
         str = str.replace(/([^a-z0-9áéíóúñü_-\s\.,]|[\t\n\f\r\v\0])/gim,"");
