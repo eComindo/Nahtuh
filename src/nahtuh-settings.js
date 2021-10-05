@@ -1,5 +1,5 @@
 const yaisettings = new function () {
-    if(window.origin === 'https://nahtuh.com'){
+    if(window.origin === 'https://cdn.nahtuh.com'){
         this.apiHubServiceUrl = 'https://nahtuhhubprodfunc.azurewebsites.net';
         this.apiIdentityServiceUrl = 'https://nahtuhidentprodfunc.azurewebsites.net';
         this.apiActivityServiceUrl = 'https://nahtuhactprodfunc.azurewebsites.net';

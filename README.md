@@ -65,7 +65,9 @@ let response = await nahtuhClient.createEvent(activityId, presetActivityId, part
 | Name                             | Type     | Description                                                        |
 | ------------------------------- | -------- | ------------------------------------------------------------ |
 |activityId|String|Unique Id used by the activity created an activity is submitted to nahtuh
-|participant|[Participant](#participant)|
-|participantToken|[ParticipantToken](#participantToken)|
+|activitySetId|String|
+|createdDate|String|
+|eventId|String|
+|invitationUrl|String|
 #### Participant
 #### ParticipantToken
