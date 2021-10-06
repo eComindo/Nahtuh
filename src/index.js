@@ -222,6 +222,9 @@ const nahtuhClient = new function () {
     // create an event
     this.createEvent = async (participantName, autoStart = true) => {
         if(!_userToken){
+            if(window.origin.includes('nahtuh')){
+                throw 'Invalid access token, please login before creating event';
+            }
             try{
                 let res = await identityManager.login(participantName, 'xxxx');
                 _userToken = res.accessToken;
