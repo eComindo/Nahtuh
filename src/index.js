@@ -634,7 +634,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${rawActivityId}/presetactivity/${activityset}/config`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity/${activityset}/config`, params);
             }catch(err){
                 throw err;
             }
@@ -656,7 +656,7 @@ const nahtuhClient = new function () {
         if(tempId.length > 1){
             activityset = tempId[0];
         }
-        let presetActivityUrl = `${apiActivityServiceUrl}/api/activity/${rawActivityId}/presetactivity/${activityset}`;
+        let presetActivityUrl = `${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity/${activityset}`;
         let res1 = await fetch(presetActivityUrl, {method: 'GET'});
         let presetActivity = await res1.json();
 
