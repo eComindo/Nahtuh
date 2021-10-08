@@ -103,6 +103,7 @@ const nahtuhClient = new function () {
         _userToken = new URLSearchParams(window.location.search).get('accessToken');
         _activityId = new URLSearchParams(window.location.search).get('activityId') || 'X002';
         _activityId = _activityId.toUpperCase();
+        _rawActivityId = new URLSearchParams(window.location.search).get('rawActivityId');
         _presetActivityId = new URLSearchParams(window.location.search).get('activitySetId');
         _avatar = new URLSearchParams(window.location.search).get('avatar');
         var isActivitySetOwnerTemp = new URLSearchParams(window.location.search).get('isActivitySetOwner');
@@ -535,7 +536,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${activityId}/presetactivity`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity`, params);
                 let data = await res.json();
                 _presetActivityId = data.id;
                 await this.updateActivitySetConfig(config);
@@ -572,7 +573,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${activityId}/presetactivity/${activityset}`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity/${activityset}`, params);
                 let data = await res.json();
                 _presetActivityId = data.id;
                 await this.updateActivitySetConfig(config);
@@ -603,7 +604,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${activityId}/presetactivity`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity`, params);
                 let data = await res.json();
                 _presetActivityId = data.id;
                 await this.updateActivitySetConfig(config);
@@ -632,7 +633,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${activityId}/presetactivity/${activityset}/config`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${rawActivityId}/presetactivity/${activityset}/config`, params);
             }catch(err){
                 throw err;
             }
@@ -654,7 +655,7 @@ const nahtuhClient = new function () {
         if(tempId.length > 1){
             activityset = tempId[0];
         }
-        let presetActivityUrl = `${apiActivityServiceUrl}/api/activity/${activityId}/presetactivity/${activityset}`;
+        let presetActivityUrl = `${apiActivityServiceUrl}/api/activity/${rawActivityId}/presetactivity/${activityset}`;
         let res1 = await fetch(presetActivityUrl, {method: 'GET'});
         let presetActivity = await res1.json();
 
