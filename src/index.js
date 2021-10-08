@@ -35,6 +35,7 @@ const nahtuhClient = new function () {
 
     // hold activity info that is sets by parent container
     var _activityId = null;
+    var _rawActivityId = null;
     var _presetActivityId = null;
     var _avatar = null;
     
