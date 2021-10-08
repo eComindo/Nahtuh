@@ -102,7 +102,7 @@ const nahtuhClient = new function () {
         window.addEventListener("message", handlePostMessage, true);
         _userToken = new URLSearchParams(window.location.search).get('accessToken');
         _activityId = new URLSearchParams(window.location.search).get('activityId') || 'X002';
-        _presetActivityId = new URLSearchParams(window.location.search).get('activitySetId') || randomString(10);
+        _presetActivityId = new URLSearchParams(window.location.search).get('activitySetId');
         _avatar = new URLSearchParams(window.location.search).get('avatar');
         var isActivitySetOwnerTemp = new URLSearchParams(window.location.search).get('isActivitySetOwner');
 
