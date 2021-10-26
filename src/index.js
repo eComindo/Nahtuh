@@ -166,7 +166,6 @@ const nahtuhClient = new function () {
             });
 
             connection.on('onParticipantLeave', (data) => { 
-                console.log(data);
                 var participantLeaveEvent = new CustomEvent('onParticipantLeave', {detail: data});
                 window.dispatchEvent(participantLeaveEvent);
                 scope.onParticipantLeave(data);
@@ -189,7 +188,6 @@ const nahtuhClient = new function () {
 
             connection.on('onGroupVariableChanged', (data) => {
                 if (data.sender !== participantInfo.participantId) {
-                    console.log('ada');
                     _groupVars[data.groupName][data.name] = data.value;
                     scope.onGroupVariableChanged(data);
                 }
@@ -254,7 +252,6 @@ const nahtuhClient = new function () {
             participantInfo = data.participant;
             participantToken = data.participantToken;
             
-            console.log('sending data . . .')
             parent.postMessage({key: 'eventInfo', value: JSON.stringify(_eventInfo)}, '*');
             parent.postMessage({key: 'username', value: participantName}, '*');
 
@@ -274,9 +271,8 @@ const nahtuhClient = new function () {
 
         return new Promise(function (resolve, reject) {
             $post('join',
-                { 'eventId': eventId, 'participantName': name, 'avatarUrl': _avatar }, false)
+                { 'eventId': eventId, 'participantName': name, 'avatarUrl': _avatar, 'userToken': _userToken }, false)
                 .then(data => {
-                    console.log(data);
                     _eventInfo = data.eventInfo;
                     scope.eventId = eventId;
                     participantInfo = data.participant;
@@ -285,7 +281,7 @@ const nahtuhClient = new function () {
                     parent.postMessage({key: 'username', value: name}, '*');
 
                     if (autoStart) {
-                        nahtuhClient.start().then(() => resolve(data))
+                        scope.start().then(() => resolve(data))
                             .catch(error => reject(error));
                     } else {
                         resolve(data);
@@ -325,7 +321,7 @@ const nahtuhClient = new function () {
     this.getParticipantList = () => {
         return new Promise(function (resolve, reject) {
             $post('participants')
-                .then(data => { console.log(data); resolve(data); })
+                .then(data => { resolve(data); })
                 .catch(error => reject(error));
         });
     }
@@ -363,7 +359,7 @@ const nahtuhClient = new function () {
     this.getGroupMember = (groupName) => {
         return new Promise(function (resolve, reject) {
             $post(`participants/${groupName}`)
-                .then(data => { console.log(data); resolve(data); })
+                .then(data => { resolve(data); })
                 .catch(error => reject(error));
         });
     }
@@ -398,11 +394,11 @@ const nahtuhClient = new function () {
     var _eventVars = {};
     var _groupVars = {};
 
-    function setSharedVariable(scope, identifier, name, value) {
+    function setSharedVariable(varScope, identifier, name, value) {
         return new Promise(function (resolve, reject) {
             $post('setsharedvariable/atomic', {
-                'scope': scope, 'items': [{
-                    'identifier': identifier, 'name': name, 'value': value, 'previousValue': nahtuhClient.eventVars[name]
+                'scope': varScope, 'items': [{
+                    'identifier': identifier, 'name': name, 'value': value, 'previousValue': scope.eventVars[name]
                 }]
             })
                 .then(() => resolve(value))
@@ -516,7 +512,6 @@ const nahtuhClient = new function () {
     }
 
     this.createPresetActivity = async (description, title, username, isPrivate = false, config = null, image = null) => {
-        console.log('masuk')
         let formData = new FormData();
         formData.append('description', description);
         formData.append('title', title);

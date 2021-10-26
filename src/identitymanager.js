@@ -8,12 +8,10 @@ const identityManager = new function () {
         var username = sanitizeString(uid);
 
         return new Promise(function (resolve, reject) {
-            console.log('apiIdentityServiceUrl', `${apiIdentityServiceUrl}/api/Login`);
             fetch(`${apiIdentityServiceUrl}/api/Login`,
                 { method: 'POST', body: JSON.stringify({ 'Login': username, 'Password': password }) })
                 .then(response => response.text()
                     .then(data => { 
-                        console.log("masuk");
                         let userToken = JSON.parse(data); 
                         resolve(userToken); }))
                 .catch((err) => { 
