@@ -16,6 +16,9 @@ Nahtuh client is a javascript library to use nahtuh API to develop real time col
         - [Join Group](#join-group)
         - [Leave Group](#leave-group)
         - [Get Group Member](#get-group-member)
+    - [Host Configuration API](#host-configuration-api)
+        - [Set Host Configuration](#set-host-configuration)
+        - [Get Host Configuration](#get-host-configuration)
     - [Messaging Api](#messaging-api)
         - [Broadcast](#broadcast)
         - [Send To User](#send-to-user)
@@ -160,6 +163,26 @@ let response = await nahtuhClient.getGroupMember(groupName);
 | Name                             | Type     | Description                                                        |
 | ------------------------------- | -------- | ------------------------------------------------------------ |
 ||[List<GroupMember>](#groupMember)|
+
+### Host Configuration API
+Host configuration is a configuration only the event's host can access. It can be useful to implement host rejoin functionality.
+#### Set Host Configuration
+``````javascript
+await nahtuhClient.setHostConfiguration(config);
+``````
+##### Parameters
+| Name                            | Nullable | Type     | Description                                                        |
+| ------------------------------- | -------- | -------- | ------------------------------------------------------------ |
+|config|No|object|any configuration you want to save
+
+#### Get Host Configuration
+``````javascript
+var response = await nahtuhClient.getHostConfiguration();
+``````
+##### Response
+| Name                             | Type     | Description                                                        |
+| ------------------------------- | -------- | ------------------------------------------------------------ |
+||object|configuration saved by the host
 
 ### Messaging API
 #### Broadcast

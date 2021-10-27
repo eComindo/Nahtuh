@@ -511,6 +511,26 @@ const nahtuhClient = new function () {
         });
     }
 
+    /* Host Configuration API
+    *
+    **********************************/
+    this.setHostConfiguration = (configuration) => {
+        return new Promise(function (resolve, reject) {
+            $post('hostconfig', {eventId: _eventInfo.eventId, value: configuration})
+                .then(data => resolve(data))
+                .catch(error => reject(error));
+        });
+    }
+
+    this.getHostConfiguration = () => {
+        return new Promise(function (resolve, reject) {
+            $get(`hostconfig/${_eventInfo.eventId}`)
+                .then(data => resolve(data))
+                .catch(error => reject(error));
+        });
+    }
+
+
     this.createPresetActivity = async (description, title, username, isPrivate = false, config = null, image = null) => {
         let formData = new FormData();
         formData.append('description', description);
