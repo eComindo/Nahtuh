@@ -101,6 +101,14 @@ const nahtuhClient = new function () {
 
     this.init = () => {
         window.addEventListener("message", handlePostMessage, true);
+        window.onfocus = function(){
+            if(connection){
+                if(connection.state === 'Disconnected'){
+                    connection.start()
+                }
+            }
+        }
+
         _userToken = new URLSearchParams(window.location.search).get('accessToken');
         _activityId = new URLSearchParams(window.location.search).get('activityId') || 'X002';
         _activityId = _activityId.toUpperCase();
@@ -304,9 +312,9 @@ const nahtuhClient = new function () {
         return new Promise(function (resolve, reject) {
             $post('leaveevent')
                 .then(() => {
-                    ObservableSlim.remove(this.eventVars);
-                    ObservableSlim.remove(this.groupVars);
-                    if (autoStop) this.stop();
+                    ObservableSlim.remove(scope.eventVars);
+                    ObservableSlim.remove(scope.groupVars);
+                    if (autoStop) scope.stop();
                     resolve();
                 })
                 .catch(() => reject('Error while try to leave'));
