@@ -54,6 +54,7 @@ const nahtuhClient = new function () {
     /* Public properties
     *
     **********************************/
+    this.participantId = null;
     this.eventId = null;
     this.isLoadingActivitySet = false;
     this.isActivitySetOwner = false;
@@ -67,6 +68,12 @@ const nahtuhClient = new function () {
 
     // call back function when new participant leave an event
     this.onParticipantLeave = () => {};
+
+    // call back function when host connected or reconnected an event
+    this.onHostConnected = () => {};
+
+    // call back function when host disconnected in an event
+    this.onHostDisconnected = () => {};
 
     // call back function when new message received
     this.onIncomingMessage = () => {};
@@ -179,6 +186,10 @@ const nahtuhClient = new function () {
                 scope.onParticipantLeave(data);
             });
 
+            connection.on('onHostConnected', data => scope.onHostConnected(data))
+
+            connection.on('onHostDisconnected', data => scope.onHostDisconnected(data))
+
             connection.onclose(() => { scope.onStopped(); })
 
             connection.on('onGroupMemberJoined', (data) => { scope.onGroupMemberJoined(data); });
@@ -252,12 +263,14 @@ const nahtuhClient = new function () {
                 'activitySetId': _presetActivityId,
                 'participantName': name,
                 'avatarUrl': _avatar,
-                'userToken': _userToken
+                'userToken': _userToken,
+                'rawId': _rawActivityId
             }, false);
 
             _eventInfo = data.eventInfo;
             this.eventId = _eventInfo.eventId;
             participantInfo = data.participant;
+            scope.participantId = participantInfo.participantId;
             participantToken = data.participantToken;
             
             parent.postMessage({key: 'eventInfo', value: JSON.stringify(_eventInfo)}, '*');
@@ -284,6 +297,7 @@ const nahtuhClient = new function () {
                     _eventInfo = data.eventInfo;
                     scope.eventId = eventId;
                     participantInfo = data.participant;
+                    scope.participantId = participantInfo.participantId;
                     participantToken = data.participantToken;
                     
                     parent.postMessage({key: 'username', value: name}, '*');
@@ -470,7 +484,6 @@ const nahtuhClient = new function () {
     // set event variable by ignoring it's atomicity
     this.groupVars = ObservableSlim.create(_groupVars, true, function (changes) {
         var params = { 'scope': 'G', 'items': [] };
-
         changes.forEach(item => {
 
             var groupName = item.currentPath.substring(0, item.currentPath.indexOf("."));
