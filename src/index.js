@@ -273,6 +273,18 @@ const nahtuhClient = new function () {
             scope.participantId = participantInfo.participantId;
             participantToken = data.participantToken;
             
+            var lockResolver;
+            if (navigator && navigator.locks && navigator.locks.request) {
+                console.log('locking tab');
+                const promise = new Promise((res) => {
+                    lockResolver = res;
+                });
+
+                navigator.locks.request(_eventInfo.eventId, { mode: "shared" }, () => {
+                    return promise;
+                });
+            }
+
             parent.postMessage({key: 'eventInfo', value: JSON.stringify(_eventInfo)}, '*');
             parent.postMessage({key: 'username', value: participantName}, '*');
 
@@ -299,7 +311,19 @@ const nahtuhClient = new function () {
                     participantInfo = data.participant;
                     scope.participantId = participantInfo.participantId;
                     participantToken = data.participantToken;
-                    
+
+                    var lockResolver;
+                    if (navigator && navigator.locks && navigator.locks.request) {
+                        console.log('locking tab')
+                        const promise = new Promise((res) => {
+                            lockResolver = res;
+                        });
+
+                        navigator.locks.request(_eventInfo.eventId, { mode: "shared" }, () => {
+                            return promise;
+                        });
+                    }
+
                     parent.postMessage({key: 'username', value: name}, '*');
 
                     if (autoStart) {
