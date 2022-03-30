@@ -280,9 +280,13 @@ const nahtuhClient = new function () {
                     lockResolver = res;
                 });
 
-                navigator.locks.request(_eventInfo.eventId, { mode: "shared" }, () => {
-                    return promise;
-                });
+                try{
+                    navigator.locks.request(_eventInfo.eventId, { mode: "shared" }, () => {
+                        return promise;
+                    });
+                }catch(err){
+                    console.log('failed locking')
+                }
             }
 
             parent.postMessage({key: 'eventInfo', value: JSON.stringify(_eventInfo)}, '*');
@@ -319,9 +323,13 @@ const nahtuhClient = new function () {
                             lockResolver = res;
                         });
 
-                        navigator.locks.request(_eventInfo.eventId, { mode: "shared" }, () => {
-                            return promise;
-                        });
+                        try{
+                            navigator.locks.request(_eventInfo.eventId, { mode: "shared" }, () => {
+                                return promise;
+                            });
+                        }catch(err){
+                            console.log('failed locking')
+                        }
                     }
 
                     parent.postMessage({key: 'username', value: name}, '*');
