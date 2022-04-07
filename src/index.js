@@ -169,15 +169,19 @@ const nahtuhClient = new function () {
                 .build();
 
             connection.on('onIncomingMessage', (data) => { 
-                var onMessageEvent = new CustomEvent('onIncomingMessage', {detail: data});
-                window.dispatchEvent(onMessageEvent);
-                scope.onIncomingMessage(data); 
+                if(data.eventId === _eventInfo.eventId){
+                    var onMessageEvent = new CustomEvent('onIncomingMessage', {detail: data});
+                    window.dispatchEvent(onMessageEvent);
+                    scope.onIncomingMessage(data);
+                }
             });
 
             connection.on('onParticipantJoined', (data) => {
-                var participantJoinEvent = new CustomEvent('onParticipantJoined', {detail: data});
-                window.dispatchEvent(participantJoinEvent);
-                scope.onParticipantJoined(data); 
+                if(data.eventId === _eventInfo.eventId){
+                    var participantJoinEvent = new CustomEvent('onParticipantJoined', {detail: data});
+                    window.dispatchEvent(participantJoinEvent);
+                    scope.onParticipantJoined(data); 
+                }
             });
 
             connection.on('onParticipantLeave', (data) => { 
