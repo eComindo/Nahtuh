@@ -57,7 +57,9 @@ const nahtuhClient = new function () {
     this.participantId = null;
     this.eventId = null;
     this.isLoadingActivitySet = false;
+    this.isLoadingEventData = false;
     this.isActivitySetOwner = false;
+    this.isStartMode = false;
 
     /* Callback functions
     *
@@ -99,8 +101,6 @@ const nahtuhClient = new function () {
     var handlePostMessage = (event) => {
         switch (event.data.key) {
             case 'setactivityinfo':
-                _activityId = event.data.value.activityId;
-                _presetActivityId = event.data.value.presetActivityId;
                 _userToken = event.data.value.userToken;
                 break;
         }
@@ -116,6 +116,10 @@ const nahtuhClient = new function () {
             }
         }
 
+        var tempMode = new URLSearchParams(window.location.search).get('mode');
+        if(tempMode === 'start'){
+            this.isStartMode = true;
+        }
         _userToken = new URLSearchParams(window.location.search).get('accessToken');
         _activityId = new URLSearchParams(window.location.search).get('activityId') || 'X002';
         _activityId = _activityId.toUpperCase();
@@ -123,9 +127,14 @@ const nahtuhClient = new function () {
         _presetActivityId = new URLSearchParams(window.location.search).get('activitySetId');
         _avatar = new URLSearchParams(window.location.search).get('avatar');
         var isActivitySetOwnerTemp = new URLSearchParams(window.location.search).get('isActivitySetOwner');
+        var persistentEventId = new URLSearchParams(window.location.search).get('eventId');
 
         if(_presetActivityId){
             this.isLoadingActivitySet = true;
+        }
+
+        if(persistentEventId){
+            this.isLoadingEventData = true;
         }
 
         if(isActivitySetOwnerTemp){
@@ -140,12 +149,12 @@ const nahtuhClient = new function () {
                 var height = Math.max(body.scrollHeight, body.offsetHeight,
                     html.clientHeight, html.scrollHeight, html.offsetHeight);
     
-                parent.postMessage({ key: 'setheight', value: height });
+                parent.postMessage({ key: 'setheight', value: height }, '*');
             });
             resizeObserver.observe(document.body);
 
             // request parent to set activity info
-            parent.postMessage({ key: 'getactivityinfo' });
+            parent.postMessage({ key: 'getactivityinfo' }, '*');
         }catch(err){
             console.log(err)
         }
@@ -268,11 +277,12 @@ const nahtuhClient = new function () {
                 'participantName': name,
                 'avatarUrl': _avatar,
                 'userToken': _userToken,
-                'rawId': _rawActivityId
+                'rawId': _rawActivityId,
+                'eventId': new URLSearchParams(window.location.search).get('eventId') || this.eventId
             }, false);
 
             _eventInfo = data.eventInfo;
-            this.eventId = _eventInfo.eventId;
+            this.eventId = data.eventInfo.eventId;
             participantInfo = data.participant;
             scope.participantId = participantInfo.participantId;
             participantToken = data.participantToken;
@@ -303,6 +313,26 @@ const nahtuhClient = new function () {
         }catch(error){
             throw error;
         }
+    }
+
+    this.createNewEvent = async (description, title, config = null, image = null) => {
+        let formData = {
+            activityId: _rawActivityId,
+            activitySetId: _presetActivityId
+        }
+        try{
+            let res = await $post(`event`, formData);
+            this.eventId = res.id;
+            await this.saveEvent(description, title, config, image);
+            return res;
+        }catch(err){
+            throw err;
+        }
+    }
+
+    this.startEvent = async () => {
+        var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+        await $post(`Event/${persistentEventId}/Start`);
     }
 
     // join to an event
@@ -587,6 +617,78 @@ const nahtuhClient = new function () {
         });
     }
 
+    this.saveEvent = async (description, title, config = null, image = null) => {
+        let formData = new FormData();
+        formData.append('description', description);
+        formData.append('title', title);
+        formData.append('file', image);
+        var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+
+        if(_userToken){
+            let params = {
+                method: 'PATCH',
+                withCredentials: true,
+                body: formData,
+                headers: { 'Authorization': 'Bearer ' + _userToken }
+            }
+
+            try{
+                let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}`, params);
+                if(res.ok){
+                    let data = await res.json();
+                    if(config){
+                        await this.uploadEventConfig(config);
+                    }
+                }else{
+                    let error = await res.text();
+                    throw error;
+                }
+            }catch(err){
+                console.log(err)
+                throw err;
+            }
+        }
+    }
+
+    this.uploadEventConfig = async (config) => {
+        let formData = new FormData();
+        formData.append('configAsString', JSON.stringify(config));
+        var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+        if(_userToken){
+            let params = {
+                method: 'POST',
+                withCredentials: true,
+                body: formData,
+                headers: { 'Authorization': 'Bearer ' + _userToken }
+            }
+            try{
+                let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/config`, params);
+            }catch(err){
+                throw err;
+            }
+        }
+    }
+
+    this.saveResult = async (files) => {
+        let formData = new FormData();
+        files.forEach((file, index) => {
+            formData.append(index, file);
+        })
+        var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+        if(_userToken){
+            let params = {
+                method: 'POST',
+                withCredentials: true,
+                body: formData,
+                headers: { 'Authorization': 'Bearer ' + _userToken }
+            }
+            try{
+                let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/finish`, params);
+            }catch(err){
+                throw err;
+            }
+        }
+    }
 
     this.createPresetActivity = async (description, title, username, isPrivate = false, config = null, image = null) => {
         let formData = new FormData();
@@ -610,9 +712,14 @@ const nahtuhClient = new function () {
 
             try{
                 let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity`, params);
-                let data = await res.json();
-                _presetActivityId = data.id;
-                await this.updateActivitySetConfig(config);
+                if(res.ok){
+                    let data = await res.json();
+                    _presetActivityId = data.id;
+                    await this.updateActivitySetConfig(config);
+                }else{
+                    let error = await res.text();
+                    throw error;
+                }
             }catch(err){
                 throw err;
             }
@@ -647,9 +754,14 @@ const nahtuhClient = new function () {
 
             try{
                 let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity/${activityset}`, params);
-                let data = await res.json();
-                _presetActivityId = data.id;
-                await this.updateActivitySetConfig(config);
+                if(res.ok){
+                    let data = await res.json();
+                    _presetActivityId = data.id;
+                    await this.updateActivitySetConfig(config);
+                }else{
+                    let error = await res.text();
+                    throw error;
+                }
             }catch(err){
                 throw err;
             }
@@ -678,9 +790,14 @@ const nahtuhClient = new function () {
 
             try{
                 let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity`, params);
-                let data = await res.json();
-                _presetActivityId = data.id;
-                await this.updateActivitySetConfig(config);
+                if(res.ok){
+                    let data = await res.json();
+                    _presetActivityId = data.id;
+                    await this.updateActivitySetConfig(config);
+                }else{
+                    let error = await res.text();
+                    throw error;
+                }
             }catch(err){
                 throw err;
             }
@@ -741,6 +858,27 @@ const nahtuhClient = new function () {
         return presetActivity;
     }
 
+    this.getEventData = async () => {
+        let params = {
+            method: 'GET',
+            withCredentials: true,
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        let persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+        let eventUrl = `${apiHubServiceUrl}/api/event/${persistentEventId}`;
+        let res1 = await fetch(eventUrl, params);
+        let eventData = await res1.json();
+
+        let configUrl = new URLSearchParams(window.location.search).get("configUrl");
+        if(configUrl){
+            let res2 = await fetch(`${configUrl}`, {method: 'GET'});
+            let config = await res2.json();
+            eventData.config = config;
+        }
+
+        return eventData;
+    }
+
     this.shareEvent = () => {
         parent.postMessage({key: 'share', value: true}, '*');
     }
@@ -755,7 +893,7 @@ const nahtuhClient = new function () {
         if (useCredential) {
             param = {
                 ...param, withCredentials: true, 
-                headers: { 'Authorization': 'Bearer ' + participantToken.accessToken }
+                headers: { 'Authorization': 'Bearer ' + (participantToken ? participantToken.accessToken : _userToken) }
             };
         }
 

@@ -1,6 +1,6 @@
 {
   "name": "nahtuh-client",
-  "version": "1.0.1-15",
+  "version": "1.0.4",
   "description": "This is a Readme file.",
   "main": "./dist/nahtuhclient.js",
   "files": [
