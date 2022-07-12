@@ -60,6 +60,7 @@ const nahtuhClient = new function () {
     this.isLoadingEventData = false;
     this.isActivitySetOwner = false;
     this.isStartMode = false;
+    this.isPreview = false;
 
     /* Callback functions
     *
@@ -119,6 +120,10 @@ const nahtuhClient = new function () {
         var tempMode = new URLSearchParams(window.location.search).get('mode');
         if(tempMode === 'start'){
             this.isStartMode = true;
+        }
+        var tempPreview = new URLSearchParams(window.location.search).get('isPreview');
+        if(tempPreview === 'true'){
+            this.isPreview = true;
         }
         _userToken = new URLSearchParams(window.location.search).get('accessToken');
         _activityId = new URLSearchParams(window.location.search).get('activityId') || 'X002';
@@ -401,6 +406,28 @@ const nahtuhClient = new function () {
         });
     }
 
+    this.createPreviewEvent = async () => {
+        let eventId = new URLSearchParams(window.location.search).get('eventId');
+        let configData;
+        if(eventId){
+            configData = await this.getEventData();
+        }else{
+            configData = await this.getPresetActivityData();
+        }
+        
+        var data = await $post(`event/preview`, {
+            'activityId': _rawActivityId,
+            'assetUrl': configData.assetUrl
+        });
+        parent.postMessage({key: 'eventpreview', value: data}, '*');
+        return data;
+    }
+
+    this.getPreviewEventDetail = async () => {
+        var data = await $get(`event/${new URLSearchParams(window.location.search).get('eventId') || this.eventId}?preview=true`);
+        return data;
+    }
+
     /* Participant API
     *
     **********************************/
@@ -670,22 +697,24 @@ const nahtuhClient = new function () {
     }
 
     this.saveResult = async (files) => {
-        let formData = new FormData();
-        files.forEach((file, index) => {
-            formData.append(index, file);
-        })
-        var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
-        if(_userToken){
-            let params = {
-                method: 'POST',
-                withCredentials: true,
-                body: formData,
-                headers: { 'Authorization': 'Bearer ' + _userToken }
-            }
-            try{
-                let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/finish`, params);
-            }catch(err){
-                throw err;
+        if(!this.isPreview){
+            let formData = new FormData();
+            files.forEach((file, index) => {
+                formData.append(index, file);
+            })
+            var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+            if(_userToken){
+                let params = {
+                    method: 'POST',
+                    withCredentials: true,
+                    body: formData,
+                    headers: { 'Authorization': 'Bearer ' + _userToken }
+                }
+                try{
+                    let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/finish`, params);
+                }catch(err){
+                    throw err;
+                }
             }
         }
     }
@@ -866,14 +895,19 @@ const nahtuhClient = new function () {
         }
         let persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
         let eventUrl = `${apiHubServiceUrl}/api/event/${persistentEventId}`;
+        if(nahtuhClient.isPreview){
+            eventUrl += '?preview=true'
+        }
         let res1 = await fetch(eventUrl, params);
         let eventData = await res1.json();
 
-        let configUrl = new URLSearchParams(window.location.search).get("configUrl");
-        if(configUrl){
-            let res2 = await fetch(`${configUrl}`, {method: 'GET'});
-            let config = await res2.json();
-            eventData.config = config;
+        if(eventData.assetUrl){
+            let configUrl = nahtuhsettings.baseUrl + '/events/' + eventData.assetUrl;
+            if(configUrl){
+                let res2 = await fetch(`${configUrl}`, {method: 'GET'});
+                let config = await res2.json();
+                eventData.config = config;
+            }
         }
 
         return eventData;
