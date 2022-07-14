@@ -14,6 +14,8 @@
 import nahtuhsettings from './nahtuh-settings';
 import ObservableSlim from './observable-slim';
 import identityManager from './identitymanager';
+import * as signalR from '@microsoft/signalr';
+import * as signalRMsgPack from '@microsoft/signalr-protocol-msgpack';
 
 const nahtuhClient = new function () {
 
@@ -179,6 +181,7 @@ const nahtuhClient = new function () {
             connection = new signalR.HubConnectionBuilder()
                 .withUrl(`${apiHubServiceUrl}/api/v2`, { accessTokenFactory: () => participantToken.accessToken })
                 .withAutomaticReconnect()
+                .withHubProtocol(new signalRMsgPack.MessagePackHubProtocol())
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 
@@ -903,6 +906,9 @@ const nahtuhClient = new function () {
 
         if(eventData.assetUrl){
             let configUrl = nahtuhsettings.baseUrl + '/events/' + eventData.assetUrl;
+            if(eventData.assetUrl.split("/").length > 3){
+                configUrl = nahtuhsettings.baseUrl + '/presetactivity/' + eventData.assetUrl;
+            }
             if(configUrl){
                 let res2 = await fetch(`${configUrl}`, {method: 'GET'});
                 let config = await res2.json();

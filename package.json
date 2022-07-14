@@ -29,5 +29,9 @@
     "webpack": "^5.51.1",
     "webpack-cli": "^4.8.0",
     "zlib": "^1.0.5"
+  },
+  "dependencies": {
+    "@microsoft/signalr": "^6.0.7",
+    "@microsoft/signalr-protocol-msgpack": "^6.0.7"
   }
 }
