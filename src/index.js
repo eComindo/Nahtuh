@@ -135,12 +135,13 @@ const nahtuhClient = new function () {
         _avatar = new URLSearchParams(window.location.search).get('avatar');
         var isActivitySetOwnerTemp = new URLSearchParams(window.location.search).get('isActivitySetOwner');
         var persistentEventId = new URLSearchParams(window.location.search).get('eventId');
+        var isHostPreview = new URLSearchParams(window.location.search).get('isHostPreview') === "true";
 
         if(_presetActivityId){
             this.isLoadingActivitySet = true;
         }
 
-        if(persistentEventId){
+        if(persistentEventId && (!this.isPreview || isHostPreview)){
             this.isLoadingEventData = true;
         }
 
