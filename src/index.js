@@ -16,6 +16,7 @@ import ObservableSlim from './observable-slim';
 import identityManager from './identitymanager';
 import * as signalR from '@microsoft/signalr';
 import * as signalRMsgPack from '@microsoft/signalr-protocol-msgpack';
+import mixpanel from 'mixpanel-browser';
 
 const nahtuhClient = new function () {
 
@@ -147,6 +148,12 @@ const nahtuhClient = new function () {
 
         if(isActivitySetOwnerTemp){
             this.isActivitySetOwner = true;
+        }
+
+        try{
+            mixpanel.init(nahtuhsettings.mixPanelToken);
+        }catch(ex){
+            console.log(ex);
         }
 
         try{
@@ -548,6 +555,11 @@ const nahtuhClient = new function () {
         });
     }
 
+    this.getAllEventVariable = async () => {
+        await getAllSharedVars("E", "a");
+        return _eventVars;
+    }
+
     // set event variable by ensuring it's atomicity
     this.setEventVariable = (name, value) => {
         return new Promise(function (resolve, reject) {
@@ -700,26 +712,46 @@ const nahtuhClient = new function () {
         }
     }
 
-    this.saveResult = async (files) => {
-        if(!this.isPreview){
-            let formData = new FormData();
-            files.forEach((file, index) => {
-                formData.append(index, file);
-            })
-            var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
-            if(_userToken){
-                let params = {
-                    method: 'POST',
-                    withCredentials: true,
-                    body: formData,
-                    headers: { 'Authorization': 'Bearer ' + _userToken }
-                }
-                try{
-                    let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/finish`, params);
-                }catch(err){
-                    throw err;
-                }
-            }
+    this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = "") => {
+        if(this.isPreview) return;
+        let formData = new FormData();
+        formData.append("engagementScore", engagementScore);
+        formData.append("engagementScoreDetail", engagementScoreDetail);
+        files.forEach((file, index) => {
+            formData.append(index, file);
+        })
+        var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+        if(!_userToken) return;
+        let params = {
+            method: 'POST',
+            withCredentials: true,
+            body: formData,
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try{
+            let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/finish`, params);
+        }catch(err){
+            throw err;
+        }
+    }
+
+    this.setEngagementScore = async (engagementScore = 0, engagementScoreDetail = "") => {
+        if(this.isPreview) return;
+        let formData = new FormData();
+        formData.append("engagementScore", engagementScore);
+        formData.append("engagementScoreDetail", engagementScoreDetail);
+        var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+        if(!_userToken) return;
+        let params = {
+            method: 'PATCH',
+            withCredentials: true,
+            body: formData,
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try{
+            let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}`, params);
+        }catch(err){
+            throw err;
         }
     }
 
@@ -744,7 +776,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity`, params);
                 if(res.ok){
                     let data = await res.json();
                     _presetActivityId = data.id;
@@ -786,7 +818,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity/${activityset}`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity/${activityset}`, params);
                 if(res.ok){
                     let data = await res.json();
                     _presetActivityId = data.id;
@@ -822,7 +854,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity`, params);
                 if(res.ok){
                     let data = await res.json();
                     _presetActivityId = data.id;
@@ -856,7 +888,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity/${activityset}/config`, params);
+                let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity/${activityset}/config`, params);
             }catch(err){
                 throw err;
             }
@@ -878,15 +910,18 @@ const nahtuhClient = new function () {
         if(tempId.length > 1){
             activityset = tempId[0];
         }
-        let presetActivityUrl = `${apiActivityServiceUrl}/api/activity/${_rawActivityId}/presetactivity/${activityset}`;
+        let presetActivityUrl = `${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity/${activityset}`;
         let res1 = await fetch(presetActivityUrl, {method: 'GET'});
         let presetActivity = await res1.json();
 
-        let configUrl = new URLSearchParams(window.location.search).get("configUrl");
-        let rand = Math.floor(Math.random() * 10000) + 1;
-        let res2 = await fetch(`${configUrl}?${rand}`, {method: 'GET'});
-        let config = await res2.json();
-        presetActivity.config = config;
+        if(presetActivity.assetUrl){
+            let configUrl = nahtuhsettings.baseUrl + '/presetactivity/' + presetActivity.assetUrl;
+            if(configUrl){
+                let res2 = await fetch(`${configUrl}`, {method: 'GET'});
+                let config = await res2.json();
+                presetActivity.config = config;
+            }
+        }
 
         return presetActivity;
     }
@@ -922,6 +957,10 @@ const nahtuhClient = new function () {
 
     this.shareEvent = () => {
         parent.postMessage({key: 'share', value: true}, '*');
+    }
+
+    this.track = (eventName, data) => {
+        mixpanel.track(eventName, data);
     }
 
     /* Helper
