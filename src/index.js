@@ -587,7 +587,10 @@ const nahtuhClient = new function () {
                 { 'identifier': null, 'name': item.property, 'value': item.newValue, 'previousValue': null });
         });
 
-        $post('setsharedvariable/override', params);
+        let token = participantToken;
+        if(token){
+            $post('setsharedvariable/override', params);
+        }
     });
 
     // set event variable by ignoring it's atomicity
@@ -600,7 +603,10 @@ const nahtuhClient = new function () {
                 { 'identifier': groupName, 'name': item.property, 'value': item.newValue, 'previousValue': null });
         });
 
-        $post('setsharedvariable/override', params);
+        let token = participantToken;
+        if(token){
+            $post('setsharedvariable/override', params);
+        }
     });
 
     /* Persistent Variable API
@@ -706,6 +712,55 @@ const nahtuhClient = new function () {
             }
             try{
                 let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/config`, params);
+            }catch(err){
+                throw err;
+            }
+        }
+    }
+
+    this.savePublicEvent = async (description, title, config = null, image = null, eventId = null, hostId = null) => {
+        if(!hostId || !eventId) throw "Event Id and Host Id must not be empty";
+
+        let formData = new FormData();
+        formData.append('description', description);
+        formData.append('title', title);
+        formData.append('file', image);
+
+        if(_userToken){
+            let params = {
+                method: 'PATCH',
+                body: formData,
+            }
+
+            try{
+                let res = await fetch(`${apiHubServiceUrl}/api/Activity/${_rawActivityId}/Event/${eventId}?hostId=${hostId}`, params);
+                if(res.ok){
+                    let data = await res.json();
+                    if(config){
+                        await this.uploadPublicEventConfig(config, eventId, hostId);
+                    }
+                }else{
+                    let error = await res.text();
+                    throw error;
+                }
+            }catch(err){
+                console.log(err)
+                throw err;
+            }
+        }
+    }
+
+    this.uploadPublicEventConfig = async (config, eventId, hostId) => {
+        let formData = new FormData();
+        formData.append('configAsString', JSON.stringify(config));
+
+        if(_userToken){
+            let params = {
+                method: 'POST',
+                body: formData,
+            }
+            try{
+                let res = await fetch(`${apiHubServiceUrl}/api/Activity/${_rawActivityId}/Event/${eventId}/Config?hostId=${hostId}`, params);
             }catch(err){
                 throw err;
             }
@@ -934,6 +989,34 @@ const nahtuhClient = new function () {
         }
         let persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
         let eventUrl = `${apiHubServiceUrl}/api/event/${persistentEventId}`;
+        if(nahtuhClient.isPreview){
+            eventUrl += '?preview=true'
+        }
+        let res1 = await fetch(eventUrl, params);
+        let eventData = await res1.json();
+
+        if(eventData.assetUrl){
+            let configUrl = nahtuhsettings.baseUrl + '/events/' + eventData.assetUrl;
+            if(eventData.assetUrl.split("/").length > 3){
+                configUrl = nahtuhsettings.baseUrl + '/presetactivity/' + eventData.assetUrl;
+            }
+            if(configUrl){
+                let res2 = await fetch(`${configUrl}`, {method: 'GET'});
+                let config = await res2.json();
+                eventData.config = config;
+            }
+        }
+
+        return eventData;
+    }
+
+    this.getPublicEventData = async (eventId, hostId) => {
+        if(!eventId || !hostId) throw "Event id and host id must not be empty";
+        let params = {
+            method: 'GET'
+        }
+        
+        let eventUrl = `${apiHubServiceUrl}/api/Activity/${_rawActivityId}/Event/${eventId}?hostId=${hostId}`;
         if(nahtuhClient.isPreview){
             eventUrl += '?preview=true'
         }
