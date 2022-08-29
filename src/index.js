@@ -187,7 +187,7 @@ const nahtuhClient = new function () {
         return new Promise(function (resolve, reject) {
 
             connection = new signalR.HubConnectionBuilder()
-                .withUrl(`${apiHubServiceUrl}/api/v2`, { accessTokenFactory: () => participantToken.accessToken })
+                .withUrl(`${apiHubServiceUrl}/v2`, { accessTokenFactory: () => participantToken.accessToken })
                 .withAutomaticReconnect()
                 .withHubProtocol(new signalRMsgPack.MessagePackHubProtocol())
                 .configureLogging(signalR.LogLevel.Information)
@@ -682,7 +682,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}`, params);
+                let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}`, params);
                 if(res.ok){
                     let data = await res.json();
                     if(config){
@@ -711,7 +711,7 @@ const nahtuhClient = new function () {
                 headers: { 'Authorization': 'Bearer ' + _userToken }
             }
             try{
-                let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/config`, params);
+                let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/config`, params);
             }catch(err){
                 throw err;
             }
@@ -733,7 +733,7 @@ const nahtuhClient = new function () {
             }
 
             try{
-                let res = await fetch(`${apiHubServiceUrl}/api/Activity/${_rawActivityId}/Event/${eventId}?hostId=${hostId}`, params);
+                let res = await fetch(`${apiHubServiceUrl}/Activity/${_rawActivityId}/Event/${eventId}?hostId=${hostId}`, params);
                 if(res.ok){
                     let data = await res.json();
                     if(config){
@@ -760,7 +760,7 @@ const nahtuhClient = new function () {
                 body: formData,
             }
             try{
-                let res = await fetch(`${apiHubServiceUrl}/api/Activity/${_rawActivityId}/Event/${eventId}/Config?hostId=${hostId}`, params);
+                let res = await fetch(`${apiHubServiceUrl}/Activity/${_rawActivityId}/Event/${eventId}/Config?hostId=${hostId}`, params);
             }catch(err){
                 throw err;
             }
@@ -784,7 +784,7 @@ const nahtuhClient = new function () {
             headers: { 'Authorization': 'Bearer ' + _userToken }
         }
         try{
-            let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}/finish`, params);
+            let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/finish`, params);
         }catch(err){
             throw err;
         }
@@ -804,7 +804,7 @@ const nahtuhClient = new function () {
             headers: { 'Authorization': 'Bearer ' + _userToken }
         }
         try{
-            let res = await fetch(`${apiHubServiceUrl}/api/event/${persistentEventId}`, params);
+            let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}`, params);
         }catch(err){
             throw err;
         }
@@ -988,7 +988,7 @@ const nahtuhClient = new function () {
             headers: { 'Authorization': 'Bearer ' + _userToken }
         }
         let persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
-        let eventUrl = `${apiHubServiceUrl}/api/event/${persistentEventId}`;
+        let eventUrl = `${apiHubServiceUrl}/event/${persistentEventId}`;
         if(nahtuhClient.isPreview){
             eventUrl += '?preview=true'
         }
@@ -1016,7 +1016,7 @@ const nahtuhClient = new function () {
             method: 'GET'
         }
         
-        let eventUrl = `${apiHubServiceUrl}/api/Activity/${_rawActivityId}/Event/${eventId}?hostId=${hostId}`;
+        let eventUrl = `${apiHubServiceUrl}/Activity/${_rawActivityId}/Event/${eventId}?hostId=${hostId}`;
         if(nahtuhClient.isPreview){
             eventUrl += '?preview=true'
         }
@@ -1065,7 +1065,7 @@ const nahtuhClient = new function () {
         }
 
         return new Promise(function (resolve, reject) {
-            fetch(`${apiHubServiceUrl}/api/${url}`, param)
+            fetch(`${apiHubServiceUrl}/${url}`, param)
                 .then(response => {
                     response.text()
                         .then(data => {
@@ -1098,7 +1098,7 @@ const nahtuhClient = new function () {
         }
 
         return new Promise(function (resolve, reject) {
-            fetch(`${apiHubServiceUrl}/api/${url}`, param)
+            fetch(`${apiHubServiceUrl}/${url}`, param)
                 .then(response => {
                     response.text()
                         .then(data => {
