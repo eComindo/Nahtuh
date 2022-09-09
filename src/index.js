@@ -41,7 +41,7 @@ const nahtuhClient = new function () {
     var _rawActivityId = null;
     var _presetActivityId = null;
     var _avatar = null;
-    
+
     // hold current user access and refresh token
     var _userToken = null;
 
@@ -70,33 +70,33 @@ const nahtuhClient = new function () {
     **********************************/
 
     // call back function when new participant join to an event
-    this.onParticipantJoined = () => {};
+    this.onParticipantJoined = () => { };
 
     // call back function when new participant leave an event
-    this.onParticipantLeave = () => {};
+    this.onParticipantLeave = () => { };
 
     // call back function when host connected or reconnected an event
-    this.onHostConnected = () => {};
+    this.onHostConnected = () => { };
 
     // call back function when host disconnected in an event
-    this.onHostDisconnected = () => {};
+    this.onHostDisconnected = () => { };
 
     // call back function when new message received
-    this.onIncomingMessage = () => {};
+    this.onIncomingMessage = () => { };
 
     // call back function when connection closed
-    this.onStopped = () => {};
+    this.onStopped = () => { };
 
     // call back function when participant join to a group
-    this.onGroupMemberJoined = () => {};
+    this.onGroupMemberJoined = () => { };
 
     // call back function when participant leave from a group
-    this.onGroupMemberLeft = () => {};
+    this.onGroupMemberLeft = () => { };
 
     // call back function when event variable changed
-    this.onEventVariableChanged = () => {};
-    this.onGroupVariableChanged = () => {};
-    this.onHostVariableChanged = () => {};
+    this.onEventVariableChanged = () => { };
+    this.onGroupVariableChanged = () => { };
+    this.onHostVariableChanged = () => { };
 
     /* Initialization API
     *
@@ -112,20 +112,20 @@ const nahtuhClient = new function () {
 
     this.init = () => {
         window.addEventListener("message", handlePostMessage, true);
-        window.onfocus = function(){
-            if(connection){
-                if(connection.state === 'Disconnected'){
+        window.onfocus = function () {
+            if (connection) {
+                if (connection.state === 'Disconnected') {
                     connection.start()
                 }
             }
         }
 
         var tempMode = new URLSearchParams(window.location.search).get('mode');
-        if(tempMode === 'start'){
+        if (tempMode === 'start') {
             this.isStartMode = true;
         }
         var tempPreview = new URLSearchParams(window.location.search).get('isPreview');
-        if(tempPreview === 'true'){
+        if (tempPreview === 'true') {
             this.isPreview = true;
         }
         _userToken = new URLSearchParams(window.location.search).get('accessToken');
@@ -138,39 +138,39 @@ const nahtuhClient = new function () {
         var persistentEventId = new URLSearchParams(window.location.search).get('eventId');
         var isHostPreview = new URLSearchParams(window.location.search).get('isHostPreview') === "true";
 
-        if(_presetActivityId){
+        if (_presetActivityId) {
             this.isLoadingActivitySet = true;
         }
 
-        if(persistentEventId && (!this.isPreview || isHostPreview)){
+        if (persistentEventId && (!this.isPreview || isHostPreview)) {
             this.isLoadingEventData = true;
         }
 
-        if(isActivitySetOwnerTemp){
+        if (isActivitySetOwnerTemp) {
             this.isActivitySetOwner = true;
         }
 
-        try{
+        try {
             mixpanel.init(nahtuhsettings.mixPanelToken);
-        }catch(ex){
+        } catch (ex) {
             console.log(ex);
         }
 
-        try{
+        try {
             const resizeObserver = new ResizeObserver(entries => {
                 var body = document.body,
                     html = document.documentElement;
-    
+
                 var height = Math.max(body.scrollHeight, body.offsetHeight,
                     html.clientHeight, html.scrollHeight, html.offsetHeight);
-    
+
                 parent.postMessage({ key: 'setheight', value: height }, '*');
             });
             resizeObserver.observe(document.body);
 
             // request parent to set activity info
             parent.postMessage({ key: 'getactivityinfo' }, '*');
-        }catch(err){
+        } catch (err) {
             console.log(err)
         }
     }
@@ -193,24 +193,24 @@ const nahtuhClient = new function () {
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 
-            connection.on('onIncomingMessage', (data) => { 
-                if(data.eventId === _eventInfo.eventId){
-                    var onMessageEvent = new CustomEvent('onIncomingMessage', {detail: data});
+            connection.on('onIncomingMessage', (data) => {
+                if (data.eventId === _eventInfo.eventId) {
+                    var onMessageEvent = new CustomEvent('onIncomingMessage', { detail: data });
                     window.dispatchEvent(onMessageEvent);
                     scope.onIncomingMessage(data);
                 }
             });
 
             connection.on('onParticipantJoined', (data) => {
-                if(data.eventId === _eventInfo.eventId){
-                    var participantJoinEvent = new CustomEvent('onParticipantJoined', {detail: data});
+                if (data.eventId === _eventInfo.eventId) {
+                    var participantJoinEvent = new CustomEvent('onParticipantJoined', { detail: data });
                     window.dispatchEvent(participantJoinEvent);
-                    scope.onParticipantJoined(data); 
+                    scope.onParticipantJoined(data);
                 }
             });
 
-            connection.on('onParticipantLeave', (data) => { 
-                var participantLeaveEvent = new CustomEvent('onParticipantLeave', {detail: data});
+            connection.on('onParticipantLeave', (data) => {
+                var participantLeaveEvent = new CustomEvent('onParticipantLeave', { detail: data });
                 window.dispatchEvent(participantLeaveEvent);
                 scope.onParticipantLeave(data);
             });
@@ -228,7 +228,7 @@ const nahtuhClient = new function () {
             connection.on('onEventVariableChanged', (data) => {
                 if (data.sender !== participantInfo.participantId) {
                     _eventVars[data.name] = data.value;
-                    var onVarChangeEvent = new CustomEvent('onEventVariableChanged', {detail: data});
+                    var onVarChangeEvent = new CustomEvent('onEventVariableChanged', { detail: data });
                     window.dispatchEvent(onVarChangeEvent);
                     scope.onEventVariableChanged(data);
                 }
@@ -270,39 +270,39 @@ const nahtuhClient = new function () {
 
     // create an event
     this.createEvent = async (participantName, autoStart = true) => {
-        if(!_userToken){
-            if(window.location.origin.includes('nahtuh')){
+        if (!_userToken) {
+            if (window.location.origin.includes('nahtuh')) {
                 throw 'Invalid access token, please login before creating event';
             }
-            try{
+            try {
                 let res = await identityManager.login(participantName, 'xxxx');
                 _userToken = res.accessToken;
-            }catch(ex){
+            } catch (ex) {
                 console.log(ex);
             }
         }
 
         var name = sanitizeString(participantName);
-        if(name.length > 20) throw 'Invalid name';
+        if (name.length > 20) throw 'Invalid name';
 
-        try{
+        try {
             var data = await $post('createevent',
-            {
-                'activityId': _activityId,
-                'activitySetId': _presetActivityId,
-                'participantName': name,
-                'avatarUrl': _avatar,
-                'userToken': _userToken,
-                'rawId': _rawActivityId,
-                'eventId': new URLSearchParams(window.location.search).get('eventId') || this.eventId
-            }, false);
+                {
+                    'activityId': _activityId,
+                    'activitySetId': _presetActivityId,
+                    'participantName': name,
+                    'avatarUrl': _avatar,
+                    'userToken': _userToken,
+                    'rawId': _rawActivityId,
+                    'eventId': new URLSearchParams(window.location.search).get('eventId') || this.eventId
+                }, false);
 
             _eventInfo = data.eventInfo;
             this.eventId = data.eventInfo.eventId;
             participantInfo = data.participant;
             scope.participantId = participantInfo.participantId;
             participantToken = data.participantToken;
-            
+
             var lockResolver;
             if (navigator && navigator.locks && navigator.locks.request) {
                 console.log('locking tab');
@@ -310,23 +310,23 @@ const nahtuhClient = new function () {
                     lockResolver = res;
                 });
 
-                try{
+                try {
                     navigator.locks.request(_eventInfo.eventId, { mode: "shared" }, () => {
                         return promise;
                     });
-                }catch(err){
+                } catch (err) {
                     console.log('failed locking')
                 }
             }
 
-            parent.postMessage({key: 'eventInfo', value: JSON.stringify(_eventInfo)}, '*');
-            parent.postMessage({key: 'username', value: participantName}, '*');
+            parent.postMessage({ key: 'eventInfo', value: JSON.stringify(_eventInfo) }, '*');
+            parent.postMessage({ key: 'username', value: participantName }, '*');
 
             if (autoStart) {
                 await scope.start();
             }
             return data;
-        }catch(error){
+        } catch (error) {
             throw error;
         }
     }
@@ -336,12 +336,12 @@ const nahtuhClient = new function () {
             activityId: _rawActivityId,
             activitySetId: _presetActivityId
         }
-        try{
+        try {
             let res = await $post(`event`, formData);
             this.eventId = res.id;
             await this.saveEvent(description, title, config, image);
             return res;
-        }catch(err){
+        } catch (err) {
             throw err;
         }
     }
@@ -354,7 +354,7 @@ const nahtuhClient = new function () {
     // join to an event
     this.join = (eventId, participantName, autoStart = true) => {
         var name = sanitizeString(participantName)
-        if(name.length > 20) throw 'Invalid name';
+        if (name.length > 20) throw 'Invalid name';
 
         return new Promise(function (resolve, reject) {
             $post('join',
@@ -373,16 +373,16 @@ const nahtuhClient = new function () {
                             lockResolver = res;
                         });
 
-                        try{
+                        try {
                             navigator.locks.request(_eventInfo.eventId, { mode: "shared" }, () => {
                                 return promise;
                             });
-                        }catch(err){
+                        } catch (err) {
                             console.log('failed locking')
                         }
                     }
 
-                    parent.postMessage({key: 'username', value: name}, '*');
+                    parent.postMessage({ key: 'username', value: name }, '*');
 
                     if (autoStart) {
                         scope.start().then(() => resolve(data))
@@ -420,17 +420,17 @@ const nahtuhClient = new function () {
     this.createPreviewEvent = async () => {
         let eventId = new URLSearchParams(window.location.search).get('eventId');
         let configData;
-        if(eventId){
+        if (eventId) {
             configData = await this.getEventData();
-        }else{
+        } else {
             configData = await this.getPresetActivityData();
         }
-        
+
         var data = await $post(`event/preview`, {
             'activityId': _rawActivityId,
             'assetUrl': configData.assetUrl
         });
-        parent.postMessage({key: 'eventpreview', value: data}, '*');
+        parent.postMessage({ key: 'eventpreview', value: data }, '*');
         return data;
     }
 
@@ -494,7 +494,7 @@ const nahtuhClient = new function () {
     *
     **********************************/
 
-    this.broadcast = (content) => { 
+    this.broadcast = (content) => {
         content = { 'content': content }
         connection.invoke("broadcast2", JSON.stringify(content));
         // $post('broadcast', { 'content': content }); 
@@ -588,7 +588,7 @@ const nahtuhClient = new function () {
         });
 
         let token = participantToken;
-        if(token){
+        if (token) {
             $post('setsharedvariable/override', params);
         }
     });
@@ -604,7 +604,7 @@ const nahtuhClient = new function () {
         });
 
         let token = participantToken;
-        if(token){
+        if (token) {
             $post('setsharedvariable/override', params);
         }
     });
@@ -619,7 +619,7 @@ const nahtuhClient = new function () {
                 .catch(error => reject(error));
         });
     }
-    
+
     this.getPersistentVars = (name) => {
         return new Promise(function (resolve, reject) {
             $get(`PersistentVariable/${name}`)
@@ -652,7 +652,7 @@ const nahtuhClient = new function () {
     **********************************/
     this.setHostConfiguration = (configuration) => {
         return new Promise(function (resolve, reject) {
-            $post('hostconfig', {eventId: _eventInfo.eventId, value: configuration})
+            $post('hostconfig', { eventId: _eventInfo.eventId, value: configuration })
                 .then(data => resolve(data))
                 .catch(error => reject(error));
         });
@@ -673,7 +673,7 @@ const nahtuhClient = new function () {
         formData.append('file', image);
         var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
 
-        if(_userToken){
+        if (_userToken) {
             let params = {
                 method: 'PATCH',
                 withCredentials: true,
@@ -681,18 +681,18 @@ const nahtuhClient = new function () {
                 headers: { 'Authorization': 'Bearer ' + _userToken }
             }
 
-            try{
+            try {
                 let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}`, params);
-                if(res.ok){
+                if (res.ok) {
                     let data = await res.json();
-                    if(config){
+                    if (config) {
                         await this.uploadEventConfig(config);
                     }
-                }else{
+                } else {
                     let error = await res.text();
                     throw error;
                 }
-            }catch(err){
+            } catch (err) {
                 console.log(err)
                 throw err;
             }
@@ -703,47 +703,47 @@ const nahtuhClient = new function () {
         let formData = new FormData();
         formData.append('configAsString', JSON.stringify(config));
         var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
-        if(_userToken){
+        if (_userToken) {
             let params = {
                 method: 'POST',
                 withCredentials: true,
                 body: formData,
                 headers: { 'Authorization': 'Bearer ' + _userToken }
             }
-            try{
+            try {
                 let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/config`, params);
-            }catch(err){
+            } catch (err) {
                 throw err;
             }
         }
     }
 
     this.savePublicEvent = async (description, title, config = null, image = null, eventId = null, hostId = null) => {
-        if(!hostId || !eventId) throw "Event Id and Host Id must not be empty";
+        if (!hostId || !eventId) throw "Event Id and Host Id must not be empty";
 
         let formData = new FormData();
         formData.append('description', description);
         formData.append('title', title);
         formData.append('file', image);
 
-        if(_userToken){
+        if (_userToken) {
             let params = {
                 method: 'PATCH',
                 body: formData,
             }
 
-            try{
+            try {
                 let res = await fetch(`${apiHubServiceUrl}/Activity/${_rawActivityId}/Event/${eventId}?hostId=${hostId}`, params);
-                if(res.ok){
+                if (res.ok) {
                     let data = await res.json();
-                    if(config){
+                    if (config) {
                         await this.uploadPublicEventConfig(config, eventId, hostId);
                     }
-                }else{
+                } else {
                     let error = await res.text();
                     throw error;
                 }
-            }catch(err){
+            } catch (err) {
                 console.log(err)
                 throw err;
             }
@@ -754,21 +754,21 @@ const nahtuhClient = new function () {
         let formData = new FormData();
         formData.append('configAsString', JSON.stringify(config));
 
-        if(_userToken){
+        if (_userToken) {
             let params = {
                 method: 'POST',
                 body: formData,
             }
-            try{
+            try {
                 let res = await fetch(`${apiHubServiceUrl}/Activity/${_rawActivityId}/Event/${eventId}/Config?hostId=${hostId}`, params);
-            }catch(err){
+            } catch (err) {
                 throw err;
             }
         }
     }
 
     this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = "") => {
-        if(this.isPreview) return;
+        if (this.isPreview) return;
         let formData = new FormData();
         formData.append("engagementScore", engagementScore);
         formData.append("engagementScoreDetail", engagementScoreDetail);
@@ -776,36 +776,36 @@ const nahtuhClient = new function () {
             formData.append(index, file);
         })
         var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
-        if(!_userToken) return;
+        if (!_userToken) return;
         let params = {
             method: 'POST',
             withCredentials: true,
             body: formData,
             headers: { 'Authorization': 'Bearer ' + _userToken }
         }
-        try{
+        try {
             let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/finish`, params);
-        }catch(err){
+        } catch (err) {
             throw err;
         }
     }
 
     this.setEngagementScore = async (engagementScore = 0, engagementScoreDetail = "") => {
-        if(this.isPreview) return;
+        if (this.isPreview) return;
         let formData = new FormData();
         formData.append("engagementScore", engagementScore);
         formData.append("engagementScoreDetail", engagementScoreDetail);
         var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
-        if(!_userToken) return;
+        if (!_userToken) return;
         let params = {
             method: 'PATCH',
             withCredentials: true,
             body: formData,
             headers: { 'Authorization': 'Bearer ' + _userToken }
         }
-        try{
+        try {
             let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}`, params);
-        }catch(err){
+        } catch (err) {
             throw err;
         }
     }
@@ -817,12 +817,12 @@ const nahtuhClient = new function () {
         formData.append('ownerName', username);
         formData.append('file', image);
         formData.append('isPrivate', isPrivate);
-        
-        if(!image){
+
+        if (!image) {
             throw 'thumbnail image not valid';
         }
 
-        if(_userToken){
+        if (_userToken) {
             let params = {
                 method: 'POST',
                 withCredentials: true,
@@ -830,17 +830,17 @@ const nahtuhClient = new function () {
                 headers: { 'Authorization': 'Bearer ' + _userToken }
             }
 
-            try{
+            try {
                 let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity`, params);
-                if(res.ok){
+                if (res.ok) {
                     let data = await res.json();
                     _presetActivityId = data.id;
                     await this.updateActivitySetConfig(config);
-                }else{
+                } else {
                     let error = await res.text();
                     throw error;
                 }
-            }catch(err){
+            } catch (err) {
                 throw err;
             }
         }
@@ -853,12 +853,12 @@ const nahtuhClient = new function () {
         formData.append('ownerName', username);
         formData.append('isPrivate', isPrivate);
         formData.append('file', image);
-        
-        if(!image){
+
+        if (!image) {
             throw 'thumbnail image not valid';
         }
 
-        if(_userToken){
+        if (_userToken) {
             let params = {
                 method: 'PUT',
                 withCredentials: true,
@@ -868,21 +868,21 @@ const nahtuhClient = new function () {
 
             let tempId = _presetActivityId.split('/')
             let activityset = _presetActivityId
-            if(tempId.length > 1){
+            if (tempId.length > 1) {
                 activityset = tempId[0]
             }
 
-            try{
+            try {
                 let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity/${activityset}`, params);
-                if(res.ok){
+                if (res.ok) {
                     let data = await res.json();
                     _presetActivityId = data.id;
                     await this.updateActivitySetConfig(config);
-                }else{
+                } else {
                     let error = await res.text();
                     throw error;
                 }
-            }catch(err){
+            } catch (err) {
                 throw err;
             }
         }
@@ -895,12 +895,12 @@ const nahtuhClient = new function () {
         formData.append('title', title);
         formData.append('ownerName', username);
         formData.append('file', image);
-        
-        if(!image){
+
+        if (!image) {
             throw 'thumbnail image not valid';
         }
 
-        if(_userToken){
+        if (_userToken) {
             let params = {
                 method: 'POST',
                 withCredentials: true,
@@ -908,17 +908,17 @@ const nahtuhClient = new function () {
                 headers: { 'Authorization': 'Bearer ' + _userToken }
             }
 
-            try{
+            try {
                 let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity`, params);
-                if(res.ok){
+                if (res.ok) {
                     let data = await res.json();
                     _presetActivityId = data.id;
                     await this.updateActivitySetConfig(config);
-                }else{
+                } else {
                     let error = await res.text();
                     throw error;
                 }
-            }catch(err){
+            } catch (err) {
                 throw err;
             }
         }
@@ -929,7 +929,7 @@ const nahtuhClient = new function () {
         let formData = new FormData();
         formData.append('configAsString', JSON.stringify(config));
 
-        if(_userToken){
+        if (_userToken) {
             let params = {
                 method: 'POST',
                 withCredentials: true,
@@ -938,13 +938,13 @@ const nahtuhClient = new function () {
             }
             let tempId = _presetActivityId.split('/')
             let activityset = _presetActivityId
-            if(tempId.length > 1){
+            if (tempId.length > 1) {
                 activityset = tempId[0]
             }
 
-            try{
+            try {
                 let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity/${activityset}/config`, params);
-            }catch(err){
+            } catch (err) {
                 throw err;
             }
         }
@@ -954,7 +954,7 @@ const nahtuhClient = new function () {
     this.getActivitySetData = async () => {
         let configUrl = new URLSearchParams(window.location.search).get("configUrl");
         let rand = Math.floor(Math.random() * 10000) + 1;
-        let res = await fetch(`${configUrl}?${rand}`, {method: 'GET'});
+        let res = await fetch(`${configUrl}?${rand}`, { method: 'GET' });
         let data = await res.json();
         return data;
     }
@@ -962,17 +962,17 @@ const nahtuhClient = new function () {
     this.getPresetActivityData = async () => {
         let tempId = _presetActivityId.split('/');
         let activityset = _presetActivityId;
-        if(tempId.length > 1){
+        if (tempId.length > 1) {
             activityset = tempId[0];
         }
         let presetActivityUrl = `${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity/${activityset}`;
-        let res1 = await fetch(presetActivityUrl, {method: 'GET'});
+        let res1 = await fetch(presetActivityUrl, { method: 'GET' });
         let presetActivity = await res1.json();
 
-        if(presetActivity.assetUrl){
+        if (presetActivity.assetUrl) {
             let configUrl = nahtuhsettings.baseUrl + '/presetactivity/' + presetActivity.assetUrl;
-            if(configUrl){
-                let res2 = await fetch(`${configUrl}`, {method: 'GET'});
+            if (configUrl) {
+                let res2 = await fetch(`${configUrl}`, { method: 'GET' });
                 let config = await res2.json();
                 presetActivity.config = config;
             }
@@ -989,19 +989,19 @@ const nahtuhClient = new function () {
         }
         let persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
         let eventUrl = `${apiHubServiceUrl}/event/${persistentEventId}`;
-        if(nahtuhClient.isPreview){
+        if (nahtuhClient.isPreview) {
             eventUrl += '?preview=true'
         }
         let res1 = await fetch(eventUrl, params);
         let eventData = await res1.json();
 
-        if(eventData.assetUrl){
+        if (eventData.assetUrl) {
             let configUrl = nahtuhsettings.baseUrl + '/events/' + eventData.assetUrl;
-            if(eventData.assetUrl.split("/").length > 3){
+            if (eventData.assetUrl.split("/").length > 3) {
                 configUrl = nahtuhsettings.baseUrl + '/presetactivity/' + eventData.assetUrl;
             }
-            if(configUrl){
-                let res2 = await fetch(`${configUrl}`, {method: 'GET'});
+            if (configUrl) {
+                let res2 = await fetch(`${configUrl}`, { method: 'GET' });
                 let config = await res2.json();
                 eventData.config = config;
             }
@@ -1011,25 +1011,25 @@ const nahtuhClient = new function () {
     }
 
     this.getPublicEventData = async (eventId, hostId) => {
-        if(!eventId || !hostId) throw "Event id and host id must not be empty";
+        if (!eventId || !hostId) throw "Event id and host id must not be empty";
         let params = {
             method: 'GET'
         }
-        
+
         let eventUrl = `${apiHubServiceUrl}/Activity/${_rawActivityId}/Event/${eventId}?hostId=${hostId}`;
-        if(nahtuhClient.isPreview){
+        if (nahtuhClient.isPreview) {
             eventUrl += '?preview=true'
         }
         let res1 = await fetch(eventUrl, params);
         let eventData = await res1.json();
 
-        if(eventData.assetUrl){
+        if (eventData.assetUrl) {
             let configUrl = nahtuhsettings.baseUrl + '/events/' + eventData.assetUrl;
-            if(eventData.assetUrl.split("/").length > 3){
+            if (eventData.assetUrl.split("/").length > 3) {
                 configUrl = nahtuhsettings.baseUrl + '/presetactivity/' + eventData.assetUrl;
             }
-            if(configUrl){
-                let res2 = await fetch(`${configUrl}`, {method: 'GET'});
+            if (configUrl) {
+                let res2 = await fetch(`${configUrl}`, { method: 'GET' });
                 let config = await res2.json();
                 eventData.config = config;
             }
@@ -1039,7 +1039,7 @@ const nahtuhClient = new function () {
     }
 
     this.shareEvent = () => {
-        parent.postMessage({key: 'share', value: true}, '*');
+        parent.postMessage({ key: 'share', value: true }, '*');
     }
 
     this.track = (eventName, data) => {
@@ -1055,7 +1055,7 @@ const nahtuhClient = new function () {
 
         if (useCredential) {
             param = {
-                ...param, withCredentials: true, 
+                ...param, withCredentials: true,
                 headers: { 'Authorization': 'Bearer ' + (participantToken ? participantToken.accessToken : _userToken) }
             };
         }
@@ -1070,10 +1070,10 @@ const nahtuhClient = new function () {
                     response.text()
                         .then(data => {
                             if (response.ok) {
-                                if (data !== '') { 
-                                    try{
+                                if (data !== '') {
+                                    try {
                                         resolve(JSON.parse(data));
-                                    } catch(ex){
+                                    } catch (ex) {
                                         resolve();
                                     }
                                 } else { resolve(); }
@@ -1115,19 +1115,23 @@ const nahtuhClient = new function () {
     };
 
     function randomString(length) {
-        var result           = '';
-        var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         var charactersLength = characters.length;
-        for ( var i = 0; i < length; i++ ) {
-          result += characters.charAt(Math.floor(Math.random() * 
-            charactersLength));
-       }
-       return result;
+        for (var i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() *
+                charactersLength));
+        }
+        return result;
     }
 
-    function sanitizeString(str){
-        str = str.replace(/([^a-z0-9áéíóúñü_-\s\.,]|[\t\n\f\r\v\0])/gim,"");
+    function sanitizeString(str) {
+        str = str.replace(/([^a-z0-9áéíóúñü_-\s\.,]|[\t\n\f\r\v\0])/gim, "");
         return str.trim();
+    }
+
+    this.sanitizeInputString = (inputString) => {
+        return sanitizeString(inputString);
     }
 }
 
