@@ -48,6 +48,8 @@ const nahtuhClient = new function () {
     // hold detail of current event
     var _eventInfo = null;
 
+    var _eventCode = null;
+
     // hold current participant access and refresh token
     var participantToken = null;
 
@@ -767,6 +769,60 @@ const nahtuhClient = new function () {
         }
     }
 
+    this.uploadEventFile = async (file) => {
+        let formData = new FormData();
+        formData.append('Files', file, file.name);
+
+        var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
+
+        if (_userToken) {
+            let params = {
+                method: 'POST',
+                withCredentials: true,
+                body: formData,
+                headers: { 'Authorization': 'Bearer ' + _userToken }
+            }
+
+            try {
+                let res = await fetch(`${apiActivityServiceUrl}/event/${persistentEventId}/${_eventCode}/file`, params);
+                return res.json();
+            } catch (err) {
+                console.log(err)
+                throw err;
+            }
+        }
+    }
+
+    this.uploadTemplateFile = async (file) => {
+        let formData = new FormData();
+        formData.append('Files', file, file.name);
+
+        if (_userToken) {
+            let params = {
+                method: 'POST',
+                withCredentials: true,
+                body: formData,
+                headers: { 'Authorization': 'Bearer ' + _userToken }
+            }
+
+            let tempId = _presetActivityId.split('/')
+            let activityset = _presetActivityId
+            if (tempId.length > 1) {
+                activityset = tempId[0]
+            }
+
+            if(!activityset) activityset = crypto.randomUUID();
+
+            try {
+                let res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/template/${activityset}/file`, params);
+                return res.json();
+            } catch (err) {
+                console.log(err)
+                throw err;
+            }
+        }
+    }
+
     this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = "") => {
         if (this.isPreview) return;
         let formData = new FormData();
@@ -994,6 +1050,7 @@ const nahtuhClient = new function () {
         }
         let res1 = await fetch(eventUrl, params);
         let eventData = await res1.json();
+        _eventCode = eventData.eventCode;
 
         if (eventData.assetUrl) {
             let configUrl = nahtuhsettings.baseUrl + '/events/' + eventData.assetUrl;
