@@ -8,7 +8,7 @@ const identityManager = new function () {
         var username = sanitizeString(uid);
 
         return new Promise(function (resolve, reject) {
-            fetch(`${apiIdentityServiceUrl}/api/Login`,
+            fetch(`${apiIdentityServiceUrl}/Login`,
                 { method: 'POST', body: JSON.stringify({ 'Login': username, 'Password': password }) })
                 .then(response => response.text()
                     .then(data => { 

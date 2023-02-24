@@ -114,13 +114,17 @@ const nahtuhClient = new function () {
 
     this.init = () => {
         window.addEventListener("message", handlePostMessage, true);
-        window.onfocus = function () {
-            if (connection) {
-                if (connection.state === 'Disconnected') {
-                    connection.start()
+        window.addEventListener("visibilitychange", () => {
+            if (document.visibilityState !== 'visible') {
+                console.log('hidden');
+            } else {
+                if (connection) {
+                    if (connection.state === 'Disconnected') {
+                        connection.start();
+                    }
                 }
             }
-        }
+        });
 
         var tempMode = new URLSearchParams(window.location.search).get('mode');
         if (tempMode === 'start') {
@@ -132,7 +136,6 @@ const nahtuhClient = new function () {
         }
         _userToken = new URLSearchParams(window.location.search).get('accessToken');
         _activityId = new URLSearchParams(window.location.search).get('activityId') || 'X002';
-        _activityId = _activityId.toUpperCase();
         _rawActivityId = new URLSearchParams(window.location.search).get('rawActivityId');
         _presetActivityId = new URLSearchParams(window.location.search).get('activitySetId');
         _avatar = new URLSearchParams(window.location.search).get('avatar');
@@ -212,23 +215,46 @@ const nahtuhClient = new function () {
             });
 
             connection.on('onParticipantLeave', (data) => {
-                var participantLeaveEvent = new CustomEvent('onParticipantLeave', { detail: data });
-                window.dispatchEvent(participantLeaveEvent);
-                scope.onParticipantLeave(data);
+                console.log(data);
+                if (data.eventId === _eventInfo.eventId) {
+                    var participantLeaveEvent = new CustomEvent('onParticipantLeave', { detail: data });
+                    window.dispatchEvent(participantLeaveEvent);
+                    scope.onParticipantLeave(data);
+                }
             });
 
-            connection.on('onHostConnected', data => scope.onHostConnected(data))
+            connection.on('onHostConnected', data => {
+                console.log(data);
+                if (data.eventId === _eventInfo.eventId) {
+                    scope.onHostConnected(data)
+                }
+            })
 
-            connection.on('onHostDisconnected', data => scope.onHostDisconnected(data))
+            connection.on('onHostDisconnected', data => {
+                console.log(data);
+                if (data.eventId === _eventInfo.eventId) {
+                    scope.onHostDisconnected(data)
+                }
+            })
 
-            connection.onclose(() => { scope.onStopped(); })
+            connection.onclose(() => { 
+                scope.onStopped();
+            })
 
-            connection.on('onGroupMemberJoined', (data) => { scope.onGroupMemberJoined(data); });
+            connection.on('onGroupMemberJoined', (data) => { 
+                if (data.eventId === _eventInfo.eventId) {
+                    scope.onGroupMemberJoined(data); 
+                }
+            });
 
-            connection.on('onGroupMemberLeft', (data) => { scope.onGroupMemberLeft(data); });
+            connection.on('onGroupMemberLeft', (data) => { 
+                if (data.eventId === _eventInfo.eventId) {
+                    scope.onGroupMemberLeft(data); 
+                }
+            });
 
             connection.on('onEventVariableChanged', (data) => {
-                if (data.sender !== participantInfo.participantId) {
+                if (data.eventId === _eventInfo.eventId && data.sender !== participantInfo.participantId) {
                     _eventVars[data.name] = data.value;
                     var onVarChangeEvent = new CustomEvent('onEventVariableChanged', { detail: data });
                     window.dispatchEvent(onVarChangeEvent);
@@ -237,14 +263,14 @@ const nahtuhClient = new function () {
             });
 
             connection.on('onGroupVariableChanged', (data) => {
-                if (data.sender !== participantInfo.participantId) {
+                if (data.eventId === _eventInfo.eventId && data.sender !== participantInfo.participantId) {
                     _groupVars[data.groupName][data.name] = data.value;
                     scope.onGroupVariableChanged(data);
                 }
             });
 
             connection.on('onHostVariableChanged', (data) => {
-                if (data.sender !== participantInfo.participantId) {
+                if (data.eventId === _eventInfo.eventId && data.sender !== participantInfo.participantId) {
                     //_eventVars[data.name] = data.value;
                     scope.onHostVariableChanged(data);
                 }
@@ -497,19 +523,19 @@ const nahtuhClient = new function () {
     **********************************/
 
     this.broadcast = (content) => {
-        content = { 'content': content }
+        content = { 'content': content, 'eventId': _eventInfo.eventId }
         connection.invoke("broadcast2", JSON.stringify(content));
         // $post('broadcast', { 'content': content }); 
     }
 
     this.sendToUser = (participantId, content) => {
-        content = { 'content': content }
+        content = { 'content': content, 'eventId': _eventInfo.eventId }
         connection.invoke("sendToUser2", participantId, JSON.stringify(content));
         // $post('sendToUser', { 'participantId': participantId, 'content': content });
     }
 
     this.sendToGroup = (groupName, content) => {
-        content = { 'content': content }
+        content = { 'content': content, 'eventId': _eventInfo.eventId }
         connection.invoke("sendToGroup2", groupName, JSON.stringify(content));
         // $post('sendToGroup', { 'groupName': groupName, 'content': content });
     }
@@ -1183,7 +1209,7 @@ const nahtuhClient = new function () {
     }
 
     function sanitizeString(str) {
-        str = str.replace(/([^a-z0-9áéíóúñü_-\s\.,]|[\t\n\f\r\v\0])/gim, "");
+        str = str.replace(/([^a-z0-9áéíóúñü?!#/"_-\s\.,]|[\t\n\f\r\v\0])/gim, "");
         return str.trim();
     }
 
