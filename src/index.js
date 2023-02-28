@@ -873,6 +873,8 @@ const nahtuhClient = new function () {
     }
 
     this.saveHistory = async (htmlString, eventId, ownerId) => {
+        if (this.isPreview) return;
+        if (!_userToken) return;
         let body = {
             html: htmlString,
             eventId,
@@ -881,13 +883,10 @@ const nahtuhClient = new function () {
         let params = {
             method: 'POST',
             withCredentials: true,
-            headers: { 'Authorization': 'Bearer ' + _userToken },
-            body,
+            body: JSON.stringify(body),
+            headers: { 'Authorization': 'Bearer ' + _userToken, 'Content-Type': 'application/json' },
         }
-        let eventUrl = `${apiHubServiceUrl}/api/History/Save`;
-        if (nahtuhClient.isPreview) {
-            eventUrl += '?preview=true'
-        }
+        let eventUrl = `${apiHubServiceUrl}/History/Save`;
         try {
             let res = await fetch(eventUrl, params);
         } catch (error) {
