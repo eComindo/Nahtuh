@@ -872,6 +872,28 @@ const nahtuhClient = new function () {
         }
     }
 
+    this.saveHistory = async (htmlString, eventId, ownerId) => {
+        if (this.isPreview) return;
+        if (!_userToken) return;
+        let body = {
+            html: htmlString,
+            eventId,
+            ownerId
+        }
+        let params = {
+            method: 'POST',
+            withCredentials: true,
+            body: JSON.stringify(body),
+            headers: { 'Authorization': 'Bearer ' + _userToken, 'Content-Type': 'application/json' },
+        }
+        let eventUrl = `${apiHubServiceUrl}/History/Save`;
+        try {
+            let res = await fetch(eventUrl, params);
+        } catch (error) {
+            throw err;
+        }
+    }
+
     this.setEngagementScore = async (engagementScore = 0, engagementScoreDetail = "") => {
         if (this.isPreview) return;
         let formData = new FormData();
