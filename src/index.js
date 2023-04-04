@@ -1007,7 +1007,7 @@ const nahtuhClient = new function () {
             headers: { 'Authorization': 'Bearer ' + _userToken }
         }
         try {
-            let res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/State/Leaderboard?eventCode=${_eventInfo.eventId}&ownerId=${_eventInfo.hostId}`, params);
+            let res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/Leaderboard?eventCode=${_eventInfo.eventId}&ownerId=${_eventInfo.hostId}`, params);
             return res;
         } catch (err) {
             throw err;
