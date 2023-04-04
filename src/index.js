@@ -374,9 +374,37 @@ const nahtuhClient = new function () {
         }
     }
 
-    this.startEvent = async () => {
+    this.startEvent = async (eventDuration = 60) => {
         var persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId;
-        await $post(`Event/${persistentEventId}/Start`);
+        let formData = new FormData();
+        formData.append("defaultduration", eventDuration);
+        let params = {
+            method: 'POST',
+            withCredentials: true,
+            body: formData,
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try {
+            await fetch(`${apiHubServiceUrl}/Event/${persistentEventId}/Start`, params);
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    this.startLobby = async (eventDuration = 60) => {
+        let formData = new FormData();
+        formData.append("defaultduration", eventDuration);
+        let params = {
+            method: 'POST',
+            withCredentials: true,
+            body: formData,
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try {
+            await fetch(`${apiHubServiceUrl}/Event/${_eventInfo.id}/Lobby/Start`, params);
+        } catch (err) {
+            throw err;
+        }
     }
 
     // join to an event
@@ -909,6 +937,103 @@ const nahtuhClient = new function () {
         }
         try {
             let res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}`, params);
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    this.getCourseQuizQuestion = async (ownerId) => {
+        if (!_userToken) return;
+        let params = {
+            method: 'POST',
+            withCredentials: true,
+            body: JSON.stringify({ ownerId: ownerId }),
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try {
+            let res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/Question`, params);
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    this.saveParticipantState = async (state, ownerId) => {
+        if (!_userToken) return;
+        let participants = await this.getParticipantList();
+        let hostName = '';
+        let index = 0;
+        while(hostName === '' && index < participants.length){
+            if(participants[index].isHost){
+                hostName = participants[index].participantName
+            }
+            index += 1;
+        }
+
+        let params = {
+            method: 'POST',
+            withCredentials: true,
+            body: JSON.stringify({ state, ownerId, isDone: false, eventCode: _eventInfo.eventId, hostName }),
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try {
+            let res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/State/Save`, params);
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    this.getParticipantState = async () => {
+        if (!_userToken) return;
+        let params = {
+            method: 'GET',
+            withCredentials: true,
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try {
+            let res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/State`, params);
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    this.getLeaderboardCourseQuiz = async () => {
+        if (!_userToken) return;
+        let params = {
+            method: 'GET',
+            withCredentials: true,
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try {
+            let res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/State/Leaderboard?eventCode=${_eventInfo.eventId}&ownerId=${_eventInfo.hostId}`, params);
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    this.submitCourseQuiz = async (state, ownerId) => {
+        if (!_userToken) return;
+        let participants = await this.getParticipantList();
+        let hostName = '';
+        let index = 0;
+        while(hostName === '' && index < participants.length){
+            if(participants[index].isHost){
+                hostName = participants[index].participantName
+            }
+            index += 1;
+        }
+        let params = {
+            method: 'POST',
+            withCredentials: true,
+            body: JSON.stringify({ state, ownerId, isDone: true, eventCode: _eventInfo.eventId, hostName }),
+            headers: { 'Authorization': 'Bearer ' + _userToken }
+        }
+        try {
+            let res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/State/Submit`, params);
+            return res;
         } catch (err) {
             throw err;
         }

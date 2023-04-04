@@ -9,7 +9,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:dev": "webpack --mode=development --progress",
-    "build:prod": "webpack --mode=production --progress"
+    "build:prod": "webpack --mode=production --progress",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src"
   },
   "prepublishOnly": "webpack --mode=production",
   "keywords": [],
@@ -24,6 +26,12 @@
     "babel-loader": "^8.2.2",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
     "compression-webpack-plugin": "^9.2.0",
+    "eslint": "^8.37.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "2.8.7",
     "typedoc": "^0.5.10",
     "typedoc-webpack-plugin": "^1.1.4",
     "webpack": "^5.51.1",
