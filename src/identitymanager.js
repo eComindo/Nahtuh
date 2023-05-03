@@ -1,4 +1,4 @@
-﻿import nahtuhsettings from './nahtuh-settings'
+import nahtuhsettings from './nahtuh-settings'
 
 const identityManager = new function () {
   const apiIdentityServiceUrl = nahtuhsettings.apiIdentityServiceUrl
