@@ -736,6 +736,38 @@ const nahtuhClient = new function () {
     }
   }
 
+  this.updateEventIsAsync = async (isAsync, config = null, image = null) => {
+    const formData = new FormData()
+    formData.append('file', image)
+    formData.append('isAsync', isAsync)
+    const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
+
+    if (_userToken) {
+      const params = {
+        method: 'PATCH',
+        withCredentials: true,
+        body: formData,
+        headers: { Authorization: 'Bearer ' + _userToken }
+      }
+
+      try {
+        const res = await fetch(`${apiHubServiceUrl}/event/${persistentEventId}`, params)
+        if (res.ok) {
+          await res.json()
+          if (config) {
+            await this.uploadEventConfig(config)
+          }
+        } else {
+          const error = await res.text()
+          throw error
+        }
+      } catch (err) {
+        console.log(err)
+        throw err
+      }
+    }
+  }
+
   this.uploadEventConfig = async (config) => {
     const formData = new FormData()
     formData.append('configAsString', JSON.stringify(config))
@@ -850,7 +882,7 @@ const nahtuhClient = new function () {
     }
   }
 
-  this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = '') => {
+  this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = '', hostname = "", isAsync = false) => {
     if (this.isPreview) return
     const formData = new FormData()
     formData.append('engagementScore', engagementScore)
@@ -858,6 +890,7 @@ const nahtuhClient = new function () {
     files.forEach((file, index) => {
       formData.append(index, file)
     })
+    if (isAsync) formData.append("hostName", hostname);
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
     if (!_userToken) return
     const params = {
@@ -866,7 +899,15 @@ const nahtuhClient = new function () {
       body: formData,
       headers: { Authorization: 'Bearer ' + _userToken }
     }
-    await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/finish`, params)
+    try {
+        if (isAsync) {
+            await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/FinishAsync`, params);
+        } else {
+            await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/Finish`, params);
+        }
+    } catch (err) {
+        throw err;
+    }
   }
 
   this.saveHistory = async (htmlString, eventId, ownerId) => {
