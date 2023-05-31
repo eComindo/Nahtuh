@@ -1319,7 +1319,7 @@ const nahtuhClient = new function () {
   }
 
   function sanitizeString (str) {
-    str = str.replace(/([^a-z0-9áéíóúñü?!#/"_-\s.,]|[\t\n\f\r\v\0])/gim, '')
+    str = str.replace(/([^a-z0-9áéíóúñü?!#/"_-\s.,\uD800-\uDBFF\uDC00-\uDFFF]|[\t\n\f\r\v\0])/gim, '')
     return str.trim()
   }
 
