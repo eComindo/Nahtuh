@@ -26,6 +26,7 @@ const nahtuhClient = new function () {
   // default service url
   const apiHubServiceUrl = nahtuhsettings.apiHubServiceUrl
   const apiActivityServiceUrl = nahtuhsettings.apiActivityServiceUrl
+  const apiUtilityServiceUrl = nahtuhsettings.apiUtilityServiceUrl
 
   /* Private properties
     *
@@ -1239,6 +1240,50 @@ const nahtuhClient = new function () {
     }
 
     return eventData
+  }
+
+  this.courseQuizGenerateQuestions = async (subject, topic, difficulty, amount, language) => {
+    console.log('NAHTUH CLIENT - courseQuizGenerateQuestions');
+    if (_userToken) {
+      const params = {
+        method: 'POST',
+        withCredentials: true,
+        body: JSON.stringify({ subject: subject, topic: topic, difficulty: difficulty, amount: amount, language: language}),
+        headers: { Authorization: 'Bearer ' + _userToken, 'Content-Type': 'application/json' }
+      }
+      console.log(params);
+
+      try {
+        // const res = await fetch(`${apiUtilityServiceUrl}/GenerateQuestions`, params)
+        const res = await fetch(`${apiUtilityServiceUrl}/GenerateQuestions`, params)
+        return res.json()
+      } catch (err) {
+        console.log(err)
+        throw err
+      }
+    }
+  }
+
+  this.courseQuizGenerateQuestionsArticle = async (article, difficulty, amount, language) => {
+    console.log('NAHTUH CLIENT - courseQuizGenerateQuestions');
+    if (_userToken) {
+      const params = {
+        method: 'POST',
+        withCredentials: true,
+        body: JSON.stringify({ article: article, difficulty: difficulty, amount: amount, language: language}),
+        headers: { Authorization: 'Bearer ' + _userToken, 'Content-Type': 'application/json' }
+      }
+      console.log(params);
+
+      try {
+        // const res = await fetch(`${apiUtilityServiceUrl}/GenerateQuestions`, params)
+        const res = await fetch(`${apiUtilityServiceUrl}/GenerateQuestionsArticle`, params)
+        return res.json()
+      } catch (err) {
+        console.log(err)
+        throw err
+      }
+    }
   }
 
   this.shareEvent = () => {
