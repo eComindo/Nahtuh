@@ -17,6 +17,7 @@ import identityManager from './identitymanager'
 import * as signalR from '@microsoft/signalr'
 import * as signalRMsgPack from '@microsoft/signalr-protocol-msgpack'
 import mixpanel from 'mixpanel-browser'
+import DOMPurify from 'isomorphic-dompurify';
 
 const nahtuhClient = new function () {
   /* Constants
@@ -1319,8 +1320,7 @@ const nahtuhClient = new function () {
   }
 
   function sanitizeString (str) {
-    str = str.replace(/([^a-z0-9áéíóúñü?!#/"_-\s.,\uD800-\uDBFF\uDC00-\uDFFF]|[\t\n\f\r\v\0])/gim, '')
-    return str.trim()
+    return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] })
   }
 
   this.sanitizeInputString = (inputString) => {

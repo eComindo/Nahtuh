@@ -41,6 +41,7 @@
   "dependencies": {
     "@microsoft/signalr": "^6.0.7",
     "@microsoft/signalr-protocol-msgpack": "^6.0.7",
+    "isomorphic-dompurify": "^1.6.0",
     "mixpanel-browser": "^2.45.0"
   }
 }
