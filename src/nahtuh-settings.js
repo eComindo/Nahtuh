@@ -3,6 +3,7 @@ const yaisettings = new function () {
     this.apiHubServiceUrl = 'https://api.nahtuh.com/hubservice'
     this.apiIdentityServiceUrl = 'https://api.nahtuh.com/identityservice'
     this.apiActivityServiceUrl = 'https://api.nahtuh.com/activityservice'
+    this.apiUtilityServiceUrl = 'https://api.nahtuh.com/utility'
     this.baseUrl = 'https://cdn.nahtuh.com'
     this.mixPanelToken = '39439f2c2a3ec56c29006747e1dc4f5b'
     console.log = function () {}
@@ -10,6 +11,7 @@ const yaisettings = new function () {
     this.apiHubServiceUrl = 'https://api-dev.nahtuh.com/hubservice'
     this.apiIdentityServiceUrl = 'https://api-dev.nahtuh.com/identityservice'
     this.apiActivityServiceUrl = 'https://api-dev.nahtuh.com/activityservice'
+    this.apiUtilityServiceUrl = 'https://api-dev.nahtuh.com/utility'
     this.baseUrl = 'https://cdn-dev.nahtuh.com'
     this.mixPanelToken = 'a28f7aefc88f0b03ddf08cbe9a79d93e'
   }
