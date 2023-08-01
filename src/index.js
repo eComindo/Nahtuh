@@ -551,6 +551,10 @@ const nahtuhClient = new function () {
     // $post('sendToGroup', { 'groupName': groupName, 'content': content });
   }
 
+  this.sendEventFeedback = (content) => {
+    connection.invoke("sendEventFeedback", _eventInfo.eventId, _activityId, JSON.stringify(content))
+  }
+
   /* Cloud Variable API
     *
     **********************************/
@@ -884,14 +888,18 @@ const nahtuhClient = new function () {
     }
   }
 
-  this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = '', hostname = "", isAsync = false) => {
+  this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = '', hostname = "", isAsync = false, isDelay = false, reportData = {}) => {
     if (this.isPreview) return
     const formData = new FormData()
     formData.append('engagementScore', engagementScore)
     formData.append('engagementScoreDetail', engagementScoreDetail)
-    files.forEach((file, index) => {
-      formData.append(index, file)
-    })
+    if (!isDelay) {
+      files.forEach((file, index) => {
+        formData.append(index, file)
+      }) 
+    } else {
+      formData.append('reportData', JSON.stringify(reportData));
+    }
     if (isAsync) formData.append("hostName", hostname);
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
     if (!_userToken) return
@@ -904,6 +912,8 @@ const nahtuhClient = new function () {
     try {
         if (isAsync) {
             await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/FinishAsync`, params);
+        } else if (isDelay) {
+            await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/FinishReportDelay`, params);
         } else {
             await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/Finish`, params);
         }
