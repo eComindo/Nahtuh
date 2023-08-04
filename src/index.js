@@ -551,8 +551,8 @@ const nahtuhClient = new function () {
     // $post('sendToGroup', { 'groupName': groupName, 'content': content });
   }
 
-  this.sendEventFeedback = (content) => {
-    connection.invoke("sendEventFeedback", _eventInfo.eventId, _activityId, JSON.stringify(content))
+  this.sendEventFeedback = (eventId,activityId,content) => {
+    connection.invoke("sendEventFeedback", eventId, activityId, JSON.stringify(content))
   }
 
   /* Cloud Variable API
