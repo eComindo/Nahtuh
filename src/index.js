@@ -17,7 +17,7 @@ import identityManager from './identitymanager'
 import * as signalR from '@microsoft/signalr'
 import * as signalRMsgPack from '@microsoft/signalr-protocol-msgpack'
 import mixpanel from 'mixpanel-browser'
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'isomorphic-dompurify'
 
 const nahtuhClient = new function () {
   /* Constants
@@ -551,8 +551,12 @@ const nahtuhClient = new function () {
     // $post('sendToGroup', { 'groupName': groupName, 'content': content });
   }
 
-  this.sendEventFeedback = (eventId,activityId,content) => {
-    connection.invoke("sendEventFeedback", eventId, activityId, JSON.stringify(content))
+  this.sendEventFeedback = (eventId, activityId, content) => {
+    connection.invoke('sendEventFeedback', eventId, activityId, JSON.stringify(content))
+  }
+
+  this.sendToLog = (eventId, message) => {
+    connection.invoke('sendToLog', eventId, message)
   }
 
   /* Cloud Variable API
@@ -888,7 +892,7 @@ const nahtuhClient = new function () {
     }
   }
 
-  this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = '', hostname = "", isAsync = false, isDelay = false, reportData = {}) => {
+  this.saveResult = async (files, engagementScore = 0, engagementScoreDetail = '', hostname = '', isAsync = false, isDelay = false, reportData = {}) => {
     if (this.isPreview) return
     const formData = new FormData()
     formData.append('engagementScore', engagementScore)
@@ -896,11 +900,11 @@ const nahtuhClient = new function () {
     if (!isDelay) {
       files.forEach((file, index) => {
         formData.append(index, file)
-      }) 
+      })
     } else {
-      formData.append('reportData', JSON.stringify(reportData));
+      formData.append('reportData', JSON.stringify(reportData))
     }
-    if (isAsync) formData.append("hostName", hostname);
+    if (isAsync) formData.append('hostName', hostname)
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
     if (!_userToken) return
     const params = {
@@ -910,15 +914,16 @@ const nahtuhClient = new function () {
       headers: { Authorization: 'Bearer ' + _userToken }
     }
     try {
-        if (isAsync) {
-            await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/FinishAsync`, params);
-        } else if (isDelay) {
-            await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/FinishReportDelay`, params);
-        } else {
-            await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/Finish`, params);
-        }
+      if (isAsync) {
+        await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/FinishAsync`, params)
+      } else if (isDelay) {
+        await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/FinishReportDelay`, params)
+      } else {
+        await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/Finish`, params)
+      }
     } catch (err) {
-        throw err;
+      console.error('NahtuhClient.saveResult', err)
+      throw err
     }
   }
 
@@ -1254,15 +1259,15 @@ const nahtuhClient = new function () {
   }
 
   this.courseQuizGenerateQuestions = async (subject, topic, difficulty, amount, language) => {
-    console.log('NAHTUH CLIENT - courseQuizGenerateQuestions');
+    console.log('NAHTUH CLIENT - courseQuizGenerateQuestions')
     if (_userToken) {
       const params = {
         method: 'POST',
         withCredentials: true,
-        body: JSON.stringify({ subject: subject, topic: topic, difficulty: difficulty, amount: amount, language: language}),
+        body: JSON.stringify({ subject, topic, difficulty, amount, language }),
         headers: { Authorization: 'Bearer ' + _userToken, 'Content-Type': 'application/json' }
       }
-      console.log(params);
+      console.log(params)
 
       try {
         // const res = await fetch(`${apiUtilityServiceUrl}/GenerateQuestions`, params)
@@ -1276,15 +1281,15 @@ const nahtuhClient = new function () {
   }
 
   this.courseQuizGenerateQuestionsArticle = async (article, difficulty, amount, language) => {
-    console.log('NAHTUH CLIENT - courseQuizGenerateQuestions');
+    console.log('NAHTUH CLIENT - courseQuizGenerateQuestions')
     if (_userToken) {
       const params = {
         method: 'POST',
         withCredentials: true,
-        body: JSON.stringify({ article: article, difficulty: difficulty, amount: amount, language: language}),
+        body: JSON.stringify({ article, difficulty, amount, language }),
         headers: { Authorization: 'Bearer ' + _userToken, 'Content-Type': 'application/json' }
       }
-      console.log(params);
+      console.log(params)
 
       try {
         // const res = await fetch(`${apiUtilityServiceUrl}/GenerateQuestions`, params)
