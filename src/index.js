@@ -78,6 +78,9 @@ const nahtuhClient = new function () {
   // call back function when new participant leave an event
   this.onParticipantLeave = () => { }
 
+  // call back function when new list participant out
+  this.onCurrentParticipants = () => { }
+
   // call back function when host connected or reconnected an event
   this.onHostConnected = () => { }
 
@@ -220,6 +223,15 @@ const nahtuhClient = new function () {
           const participantLeaveEvent = new CustomEvent('onParticipantLeave', { detail: data })
           window.dispatchEvent(participantLeaveEvent)
           scope.onParticipantLeave(data)
+        }
+      })
+
+      connection.on('onCurrentParticipants', (data) => {
+        console.log(data)
+        if (data.eventId === _eventInfo.eventId) {
+          const currentParticipantsEvent = new CustomEvent('onCurrentParticipants', { detail: data.list })
+          window.dispatchEvent(currentParticipantsEvent)
+          scope.onCurrentParticipants(data)
         }
       })
 
