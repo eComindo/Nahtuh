@@ -571,6 +571,10 @@ const nahtuhClient = new function () {
     connection.invoke('sendToLog', eventId, message)
   }
 
+  this.requestParticipantList = () => {
+    connection.invoke('getParticipantList', _eventInfo.eventId)
+  }
+
   /* Cloud Variable API
     *
     **********************************/
