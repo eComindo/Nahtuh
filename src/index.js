@@ -31,7 +31,6 @@ const nahtuhClient = new function () {
   const apiUtilityServiceUrl = nahtuhsettings.apiUtilityServiceUrl
   const apiIdentityServiceUrl = nahtuhsettings.apiIdentityServiceUrl
 
-
   /* Private properties
     *
     **********************************/
@@ -49,8 +48,8 @@ const nahtuhClient = new function () {
   // hold current user access and refresh token
   let _userToken = null
   let tokenDecode = _userToken
-  ? jwtDecode(_userToken)
-  : null;
+    ? jwtDecode(_userToken)
+    : null
 
   // hold detail of current event
   let _eventInfo = null
@@ -147,7 +146,7 @@ const nahtuhClient = new function () {
     _userToken = new URLSearchParams(window.location.search).get('accessToken')
     tokenDecode = _userToken
       ? jwtDecode(_userToken)
-      : null;
+      : null
     _activityId = new URLSearchParams(window.location.search).get('activityId') || 'X002'
     _rawActivityId = new URLSearchParams(window.location.search).get('rawActivityId')
     _presetActivityId = new URLSearchParams(window.location.search).get('activitySetId')
@@ -319,15 +318,16 @@ const nahtuhClient = new function () {
   // create an event
   this.createEvent = async (participantName, autoStart = true) => {
     if (!_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       if (window.location.origin.includes('nahtuh')) {
         throw new Error('Invalid access token, please login before creating event')
       }
       try {
         const res = await identityManager.login(participantName, 'xxxx')
         _userToken = res.accessToken
-        tokenDecode = _userToken
-        ? jwtDecode(_userToken)
-        : null;
+        tokenDecode = accessToken
+          ? jwtDecode(accessToken)
+          : null
       } catch (ex) {
         console.log(ex)
       }
@@ -393,11 +393,12 @@ const nahtuhClient = new function () {
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
     const formData = new FormData()
     formData.append('defaultduration', eventDuration)
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'POST',
       withCredentials: true,
       body: formData,
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     await fetch(`${apiHubServiceUrl}/Event/${persistentEventId}/Start`, params)
   }
@@ -405,23 +406,24 @@ const nahtuhClient = new function () {
   this.startLobby = async (eventDuration = 60) => {
     const formData = new FormData()
     formData.append('defaultduration', eventDuration)
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'POST',
       withCredentials: true,
       body: formData,
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     await fetch(`${apiHubServiceUrl}/Event/${_eventInfo.id}/Lobby/Start`, params)
   }
 
   // join to an event
-  this.join = (eventId, participantName, autoStart = true) => {
+  this.join = async (eventId, participantName, autoStart = true) => {
     const name = sanitizeString(participantName)
     if (name.length > 20) throw new Error('Invalid name')
-
+    const accessToken = await getAccessToken(_userToken)
     return new Promise(function (resolve, reject) {
       $post('join',
-        { eventId, participantName: name, avatarUrl: _avatar, userToken: _userToken }, false)
+        { eventId, participantName: name, avatarUrl: _avatar, userToken: accessToken }, false)
         .then(data => {
           _eventInfo = data.eventInfo
           scope.eventId = eventId
@@ -506,15 +508,16 @@ const nahtuhClient = new function () {
     *
     **********************************/
 
-  // get host info 
+  // get host info
   this.getHostInfo = async () => {
     if (!_userToken) return
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'GET',
       withCredentials: true,
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
-    const res = await fetch(`${apiIdentityServiceUrl}/userinfo?userid=${tokenDecode["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]}`, params)
+    const res = await fetch(`${apiIdentityServiceUrl}/userinfo?userid=${tokenDecode['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']}`, params)
     return res
   }
 
@@ -607,7 +610,7 @@ const nahtuhClient = new function () {
   var _eventVars = {}
   var _groupVars = {}
 
-  function setSharedVariable(varScope, identifier, name, value) {
+  function setSharedVariable (varScope, identifier, name, value) {
     return new Promise(function (resolve, reject) {
       $post('setsharedvariable/atomic', {
         scope: varScope,
@@ -621,7 +624,7 @@ const nahtuhClient = new function () {
   }
 
   // get all shared variable. this is called when connection started
-  function getAllSharedVars(scope, identifier) {
+  function getAllSharedVars (scope, identifier) {
     return new Promise(function (resolve, reject) {
       $get(`getallsharedvariables/${scope}/${identifier}`)
         .then(data => {
@@ -761,11 +764,12 @@ const nahtuhClient = new function () {
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
 
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'PATCH',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
 
       try {
@@ -793,11 +797,12 @@ const nahtuhClient = new function () {
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
 
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'PATCH',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
 
       try {
@@ -823,11 +828,12 @@ const nahtuhClient = new function () {
     formData.append('configAsString', JSON.stringify(config))
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'POST',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
       await fetch(`${apiHubServiceUrl}/event/${persistentEventId}/config`, params)
     }
@@ -885,11 +891,12 @@ const nahtuhClient = new function () {
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
 
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'POST',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
 
       try {
@@ -907,11 +914,12 @@ const nahtuhClient = new function () {
     formData.append('Files', file, file.name)
 
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'POST',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
 
       const tempId = _presetActivityId.split('/')
@@ -947,11 +955,12 @@ const nahtuhClient = new function () {
     if (isAsync) formData.append('hostName', hostname)
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
     if (!_userToken) return
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'POST',
       withCredentials: true,
       body: formData,
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     try {
       if (isAsync) {
@@ -975,11 +984,12 @@ const nahtuhClient = new function () {
       eventId,
       ownerId
     }
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'POST',
       withCredentials: true,
       body: JSON.stringify(body),
-      headers: { Authorization: 'Bearer ' + _userToken, 'Content-Type': 'application/json' }
+      headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' }
     }
     const eventUrl = `${apiHubServiceUrl}/History/Save`
     await fetch(eventUrl, params)
@@ -992,22 +1002,24 @@ const nahtuhClient = new function () {
     formData.append('engagementScoreDetail', engagementScoreDetail)
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
     if (!_userToken) return
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'PATCH',
       withCredentials: true,
       body: formData,
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     await fetch(`${apiHubServiceUrl}/event/${persistentEventId}`, params)
   }
 
   this.getCourseQuizQuestion = async (ownerId) => {
     if (!_userToken) return
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'POST',
       withCredentials: true,
       body: JSON.stringify({ ownerId }),
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     const res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/Question`, params)
     return res
@@ -1027,12 +1039,12 @@ const nahtuhClient = new function () {
 
     const date = new Date()
     const offset = date.getTimezoneOffset()
-
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'POST',
       withCredentials: true,
       body: JSON.stringify({ state, ownerId, isDone: false, eventCode: _eventInfo.eventId, hostName, participantTimeDiffInMinutes: offset }),
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     const res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/State/Save`, params)
     return res
@@ -1040,10 +1052,11 @@ const nahtuhClient = new function () {
 
   this.getParticipantState = async () => {
     if (!_userToken) return
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'GET',
       withCredentials: true,
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     const res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/State`, params)
     return res
@@ -1051,10 +1064,11 @@ const nahtuhClient = new function () {
 
   this.getLeaderboardCourseQuiz = async () => {
     if (!_userToken) return
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'GET',
       withCredentials: true,
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     const res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/Leaderboard?eventCode=${_eventInfo.eventId}&ownerId=${_eventInfo.hostId}`, params)
     return res
@@ -1074,12 +1088,12 @@ const nahtuhClient = new function () {
 
     const date = new Date()
     const offset = date.getTimezoneOffset()
-
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'POST',
       withCredentials: true,
       body: JSON.stringify({ state, ownerId, isDone: true, eventCode: _eventInfo.eventId, hostName, participantTimeDiffInMinutes: offset }),
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     const res = await fetch(`${apiHubServiceUrl}/event/${_eventInfo.id}/State/Submit`, params)
     return res
@@ -1098,11 +1112,12 @@ const nahtuhClient = new function () {
     }
 
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'POST',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
 
       const res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity`, params)
@@ -1130,11 +1145,12 @@ const nahtuhClient = new function () {
     }
 
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'PUT',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
 
       const tempId = _presetActivityId.split('/')
@@ -1168,11 +1184,12 @@ const nahtuhClient = new function () {
     }
 
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'POST',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
 
       const res = await fetch(`${apiActivityServiceUrl}/activity/${_rawActivityId}/presetactivity`, params)
@@ -1193,11 +1210,12 @@ const nahtuhClient = new function () {
     formData.append('configAsString', JSON.stringify(config))
 
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'POST',
         withCredentials: true,
         body: formData,
-        headers: { Authorization: 'Bearer ' + _userToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
       const tempId = _presetActivityId.split('/')
       let activityset = _presetActivityId
@@ -1241,10 +1259,11 @@ const nahtuhClient = new function () {
   }
 
   this.getEventData = async () => {
+    const accessToken = await getAccessToken(_userToken)
     const params = {
       method: 'GET',
       withCredentials: true,
-      headers: { Authorization: 'Bearer ' + _userToken }
+      headers: { Authorization: 'Bearer ' + accessToken }
     }
     const persistentEventId = new URLSearchParams(window.location.search).get('eventId') || this.eventId
     let eventUrl = `${apiHubServiceUrl}/event/${persistentEventId}`
@@ -1301,11 +1320,12 @@ const nahtuhClient = new function () {
   this.courseQuizGenerateQuestions = async (subject, topic, difficulty, amount, language) => {
     console.log('NAHTUH CLIENT - courseQuizGenerateQuestions')
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'POST',
         withCredentials: true,
         body: JSON.stringify({ subject, topic, difficulty, amount, language }),
-        headers: { Authorization: 'Bearer ' + _userToken, 'Content-Type': 'application/json' }
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' }
       }
       console.log(params)
 
@@ -1323,11 +1343,12 @@ const nahtuhClient = new function () {
   this.courseQuizGenerateQuestionsArticle = async (article, difficulty, amount, language) => {
     console.log('NAHTUH CLIENT - courseQuizGenerateQuestions')
     if (_userToken) {
+      const accessToken = await getAccessToken(_userToken)
       const params = {
         method: 'POST',
         withCredentials: true,
         body: JSON.stringify({ article, difficulty, amount, language }),
-        headers: { Authorization: 'Bearer ' + _userToken, 'Content-Type': 'application/json' }
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' }
       }
       console.log(params)
 
@@ -1354,14 +1375,16 @@ const nahtuhClient = new function () {
     *
     **********************************/
 
-  const $post = (url, body, useCredential = true) => {
+  const $post = async (url, body, useCredential = true) => {
     let param = { method: 'POST' }
+
+    const accessToken = await getAccessToken(participantToken ? participantToken.accessToken : _userToken)
 
     if (useCredential) {
       param = {
         ...param,
         withCredentials: true,
-        headers: { Authorization: 'Bearer ' + (participantToken ? participantToken.accessToken : _userToken) }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
     }
 
@@ -1391,15 +1414,17 @@ const nahtuhClient = new function () {
     })
   }
 
-  const $get = (url, useCredential = true) => {
+  const $get = async (url, useCredential = true) => {
     let param = { method: 'GET' }
+
+    const accessToken = await getAccessToken(participantToken.accessToken)
 
     if (useCredential) {
       param = {
         ...param,
         withCredentials: true,
         credentials: 'include',
-        headers: { Authorization: 'Bearer ' + participantToken.accessToken }
+        headers: { Authorization: 'Bearer ' + accessToken }
       }
     }
 
@@ -1419,7 +1444,41 @@ const nahtuhClient = new function () {
     })
   }
 
-  function sanitizeString(str) {
+  async function getAccessToken (token) {
+    const decodedToken = jwtDecode(token)
+    if (decodedToken.exp) {
+      const currentTime = Math.floor(Date.now() / 1000)
+      if (currentTime < decodedToken.exp) {
+        return token
+      } else {
+        const refreshToken = new URLSearchParams(window.location.search).get('refreshToken')
+        const bodyParam = { refreshToken }
+        const params = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bodyParam)
+        }
+        try {
+          const response = await fetch(`${apiIdentityServiceUrl}/RefreshAccessToken`, params)
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`)
+          }
+          const responseBody = await response.text()
+          const newAccessToken = responseBody.trim()
+          _userToken = newAccessToken
+          return newAccessToken
+        } catch (error) {
+          return token
+        }
+      }
+    } else {
+      return token
+    }
+  }
+
+  function sanitizeString (str) {
     return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] })
   }
 
