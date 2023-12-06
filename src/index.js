@@ -18,6 +18,7 @@ import * as signalR from '@microsoft/signalr'
 import * as signalRMsgPack from '@microsoft/signalr-protocol-msgpack'
 import mixpanel from 'mixpanel-browser'
 import DOMPurify from 'isomorphic-dompurify'
+import { jwtDecode } from 'jwt-decode'
 
 const nahtuhClient = new function () {
   /* Constants
@@ -28,6 +29,8 @@ const nahtuhClient = new function () {
   const apiHubServiceUrl = nahtuhsettings.apiHubServiceUrl
   const apiActivityServiceUrl = nahtuhsettings.apiActivityServiceUrl
   const apiUtilityServiceUrl = nahtuhsettings.apiUtilityServiceUrl
+  const apiIdentityServiceUrl = nahtuhsettings.apiIdentityServiceUrl
+
 
   /* Private properties
     *
@@ -45,6 +48,9 @@ const nahtuhClient = new function () {
 
   // hold current user access and refresh token
   let _userToken = null
+  let tokenDecode = _userToken
+  ? jwtDecode(_userToken)
+  : null;
 
   // hold detail of current event
   let _eventInfo = null
@@ -139,6 +145,9 @@ const nahtuhClient = new function () {
       this.isPreview = true
     }
     _userToken = new URLSearchParams(window.location.search).get('accessToken')
+    tokenDecode = _userToken
+      ? jwtDecode(_userToken)
+      : null;
     _activityId = new URLSearchParams(window.location.search).get('activityId') || 'X002'
     _rawActivityId = new URLSearchParams(window.location.search).get('rawActivityId')
     _presetActivityId = new URLSearchParams(window.location.search).get('activitySetId')
@@ -316,6 +325,9 @@ const nahtuhClient = new function () {
       try {
         const res = await identityManager.login(participantName, 'xxxx')
         _userToken = res.accessToken
+        tokenDecode = _userToken
+        ? jwtDecode(_userToken)
+        : null;
       } catch (ex) {
         console.log(ex)
       }
@@ -494,6 +506,18 @@ const nahtuhClient = new function () {
     *
     **********************************/
 
+  // get host info 
+  this.getHostInfo = async () => {
+    if (!_userToken) return
+    const params = {
+      method: 'GET',
+      withCredentials: true,
+      headers: { Authorization: 'Bearer ' + _userToken }
+    }
+    const res = await fetch(`${apiIdentityServiceUrl}/userinfo?userid=${tokenDecode["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]}`, params)
+    return res
+  }
+
   // get list of event participants
   this.getParticipantList = () => {
     return new Promise(function (resolve, reject) {
@@ -583,7 +607,7 @@ const nahtuhClient = new function () {
   var _eventVars = {}
   var _groupVars = {}
 
-  function setSharedVariable (varScope, identifier, name, value) {
+  function setSharedVariable(varScope, identifier, name, value) {
     return new Promise(function (resolve, reject) {
       $post('setsharedvariable/atomic', {
         scope: varScope,
@@ -597,7 +621,7 @@ const nahtuhClient = new function () {
   }
 
   // get all shared variable. this is called when connection started
-  function getAllSharedVars (scope, identifier) {
+  function getAllSharedVars(scope, identifier) {
     return new Promise(function (resolve, reject) {
       $get(`getallsharedvariables/${scope}/${identifier}`)
         .then(data => {
@@ -1395,7 +1419,7 @@ const nahtuhClient = new function () {
     })
   }
 
-  function sanitizeString (str) {
+  function sanitizeString(str) {
     return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] })
   }
 
