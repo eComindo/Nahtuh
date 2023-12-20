@@ -1445,7 +1445,13 @@ const nahtuhClient = new function () {
   }
 
   async function getAccessToken (token) {
-    const decodedToken = jwtDecode(token)
+    let decodedToken = null
+    try {
+      decodedToken = jwtDecode(token)
+    } catch (error) {
+      console.log('getAccessToken error', token)
+      return token
+    }
     if (decodedToken.exp) {
       const currentTime = Math.floor(Date.now() / 1000)
       if (currentTime < decodedToken.exp) {
